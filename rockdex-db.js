@@ -79,27 +79,31 @@
             this._isBrowser = typeof window !== 'undefined';
             this._isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
 
-            try {
-                if (this._storageMode === 'file') {
-                    if (this._isBrowser) {
-                        // Browser: Use localStorage/IndexedDB
-                        this._initBrowserFileStorage();
-                    } else {
-                        // Node.js: Use fs module
-                        this._initNodeFileStorage();
-                    }
-                } else if (this._storageMode === 'folder') {
-                    if (this._isBrowser) {
-                        // Browser: Use IndexedDB for folder simulation
-                        this._initBrowserFolderStorage();
-                    } else {
-                        // Node.js: Use fs module
-                        this._initNodeFolderStorage();
-                    }
+            if (this._storageMode === 'file') {
+                if (this._isBrowser) {
+                    // Browser: Use localStorage/IndexedDB (async)
+                    this._initBrowserFileStorage().catch(error => {
+                        this._lastError = error;
+                        this._log('storage_init_error', { error: error.message });
+                    });
+                } else {
+                    // Node.js: Use fs module (async)
+                    this._initNodeFileStorage().catch(error => {
+                        this._lastError = error;
+                        this._log('storage_init_error', { error: error.message });
+                    });
                 }
-            } catch (error) {
-                this._lastError = error;
-                this._log('storage_init_error', { error: error.message });
+            } else if (this._storageMode === 'folder') {
+                if (this._isBrowser) {
+                    // Browser: Use IndexedDB for folder simulation
+                    this._initBrowserFolderStorage();
+                } else {
+                    // Node.js: Use fs module (async)
+                    this._initNodeFolderStorage().catch(error => {
+                        this._lastError = error;
+                        this._log('storage_init_error', { error: error.message });
+                    });
+                }
             }
         }
 
@@ -107,13 +111,13 @@
          * Initialize browser file storage using localStorage
          * @private
          */
-        _initBrowserFileStorage() {
+        async _initBrowserFileStorage() {
             const storageKey = `rockdx_${this._storagePath.replace(/[^a-zA-Z0-9]/g, '_')}`;
             const existingData = localStorage.getItem(storageKey);
             
             if (existingData) {
                 try {
-                    const decryptedData = this._decrypt(existingData);
+                    const decryptedData = await this._decrypt(existingData);
                     const data = JSON.parse(decryptedData);
                     this._loadDataIntoTables(data);
                 } catch (error) {
@@ -136,15 +140,15 @@
          * Initialize Node.js file storage
          * @private
          */
-        _initNodeFileStorage() {
-            const fs = require('fs');
+        async _initNodeFileStorage() {
+            const fs = await import('fs');
             
             const filePath = this._storagePath.endsWith('.rdb') ? this._storagePath : `${this._storagePath}.rdb`;
             if (fs.existsSync(filePath)) {
-                this._loadFromFile(filePath);
+                await this._loadFromFile(filePath);
             } else {
-                this._ensureDirectoryExists(this._pathDirname(filePath));
-                this._saveToFile(filePath, {});
+                await this._ensureDirectoryExists(await this._pathDirname(filePath));
+                await this._saveToFile(filePath, {});
             }
         }
 
@@ -152,12 +156,12 @@
          * Initialize Node.js folder storage
          * @private
          */
-        _initNodeFolderStorage() {
-            const fs = require('fs');
+        async _initNodeFolderStorage() {
+            const fs = await import('fs');
             
-            this._ensureDirectoryExists(this._storagePath);
+            await this._ensureDirectoryExists(this._storagePath);
             if (!this._lazyLoad) {
-                this._loadAllTables();
+                await this._loadAllTables();
             }
         }
 
@@ -166,10 +170,10 @@
          * @param {string} dirPath
          * @private
          */
-        _ensureDirectoryExists(dirPath) {
+        async _ensureDirectoryExists(dirPath) {
             if (this._isBrowser) return; // Not applicable in browser
             
-            const fs = require('fs');
+            const fs = await import('fs');
             if (!fs.existsSync(dirPath)) {
                 fs.mkdirSync(dirPath, { recursive: true });
             }
@@ -178,15 +182,15 @@
         /**
          * Cross-platform path join
          * @param {...string} parts
-         * @returns {string}
+         * @returns {Promise<string>}
          * @private
          */
-        _pathJoin(...parts) {
+        async _pathJoin(...parts) {
             if (this._isBrowser) {
                 // Simple browser path join
                 return parts.join('/').replace(/\/+/g, '/');
             } else {
-                const path = require('path');
+                const path = await import('path');
                 return path.join(...parts);
             }
         }
@@ -194,16 +198,16 @@
         /**
          * Cross-platform path dirname
          * @param {string} filePath
-         * @returns {string}
+         * @returns {Promise<string>}
          * @private
          */
-        _pathDirname(filePath) {
+        async _pathDirname(filePath) {
             if (this._isBrowser) {
                 const parts = filePath.split('/');
                 parts.pop();
                 return parts.join('/') || '/';
             } else {
-                const path = require('path');
+                const path = await import('path');
                 return path.dirname(filePath);
             }
         }
@@ -213,7 +217,7 @@
          * @returns {string}
          * @private
          */
-        _generateSecureId() {
+        async _generateSecureId() {
             const timestamp = Date.now().toString(36);
             
             if (this._isBrowser) {
@@ -230,7 +234,7 @@
                 }
             } else {
                 // Node.js: Use crypto module
-                const crypto = require('crypto');
+                const crypto = await import('crypto');
                 const randomBytes = crypto.randomBytes(16).toString('hex');
                 const combined = `${timestamp}-${randomBytes}`;
                 return crypto.createHash('sha256').update(combined).digest('hex').substr(0, 16);
@@ -256,10 +260,10 @@
         /**
          * Encrypt data using AES-256 (cross-platform)
          * @param {string} data
-         * @returns {string}
+         * @returns {Promise<string>}
          * @private
          */
-        _encrypt(data) {
+        async _encrypt(data) {
             if (!this._encryptionKey) return data;
             
             if (this._isBrowser) {
@@ -267,7 +271,7 @@
                 return this._browserEncrypt(data);
             } else {
                 // Node.js: Use crypto module
-                const crypto = require('crypto');
+                const crypto = await import('crypto');
                 const iv = crypto.randomBytes(16);
                 const cipher = crypto.createCipher('aes-256-cbc', this._encryptionKey);
                 let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -279,10 +283,10 @@
         /**
          * Decrypt data using AES-256 (cross-platform)
          * @param {string} encryptedData
-         * @returns {string}
+         * @returns {Promise<string>}
          * @private
          */
-        _decrypt(encryptedData) {
+        async _decrypt(encryptedData) {
             if (!this._encryptionKey) return encryptedData;
             
             if (this._isBrowser) {
@@ -290,7 +294,7 @@
                 return this._browserDecrypt(encryptedData);
             } else {
                 // Node.js: Use crypto module
-                const crypto = require('crypto');
+                const crypto = await import('crypto');
                 const parts = encryptedData.split(':');
                 if (parts.length !== 2) return encryptedData;
                 
@@ -363,11 +367,11 @@
          * @param {string} filePath
          * @private
          */
-        _loadFromFile(filePath) {
-            const fs = require('fs');
+        async _loadFromFile(filePath) {
+            const fs = await import('fs');
             try {
                 const rawData = fs.readFileSync(filePath, 'utf8');
-                const decryptedData = this._decrypt(rawData);
+                const decryptedData = await this._decrypt(rawData);
                 const data = JSON.parse(decryptedData);
                 this._loadDataIntoTables(data);
                 this._log('loaded_from_file', { filePath, tables: Object.keys(data).length });
@@ -397,13 +401,12 @@
          * @param {Object} data
          * @private
          */
-        _saveToFile(filePath, data) {
-            const fs = require('fs');
-            const path = require('path');
+        async _saveToFile(filePath, data) {
+            const fs = await import('fs');
             
             try {
                 const jsonData = JSON.stringify(data, null, 2);
-                const encryptedData = this._encrypt(jsonData);
+                const encryptedData = await this._encrypt(jsonData);
                 const tempPath = `${filePath}.tmp`;
                 
                 // Write to temporary file first (atomic operation)
@@ -424,14 +427,14 @@
          * Load all tables in folder mode (Node.js only)
          * @private
          */
-        _loadAllTables() {
-            const fs = require('fs');
+        async _loadAllTables() {
+            const fs = await import('fs');
             
             try {
                 const files = fs.readdirSync(this._storagePath).filter(file => file.endsWith('.rdb'));
                 for (const file of files) {
                     const tableName = file.replace('.rdb', '');
-                    this._loadTable(tableName);
+                    await this._loadTable(tableName);
                 }
             } catch (error) {
                 this._lastError = error;
@@ -444,18 +447,18 @@
          * @param {string} tableName
          * @private
          */
-        _loadTable(tableName) {
+        async _loadTable(tableName) {
             if (this._storageMode !== 'folder' || this._loadedTables.has(tableName)) {
                 return;
             }
 
             if (this._isBrowser) {
-                this._loadTableFromIndexedDB(tableName);
+                await this._loadTableFromIndexedDB(tableName);
             } else {
-                const filePath = this._pathJoin(this._storagePath, `${tableName}.rdb`);
+                const filePath = await this._pathJoin(this._storagePath, `${tableName}.rdb`);
                 
                 try {
-                    this._loadFromFile(filePath);
+                    await this._loadFromFile(filePath);
                     this._loadedTables.add(tableName);
                     this._log('lazy_loaded_table', { tableName });
                 } catch (error) {
@@ -493,10 +496,10 @@
                     const store = transaction.objectStore('tables');
                     const getRequest = store.get(tableName);
 
-                    getRequest.onsuccess = () => {
+                    getRequest.onsuccess = async () => {
                         const record = getRequest.result;
                         if (record) {
-                            const decryptedData = this._decrypt(record.data);
+                            const decryptedData = await this._decrypt(record.data);
                             const tableData = JSON.parse(decryptedData);
                             this._tables.set(tableName, tableData.rows || []);
                             if (tableData.schema) {
@@ -524,10 +527,10 @@
          * @param {string} tableName
          * @private
          */
-        _saveTable(tableName) {
+        async _saveTable(tableName) {
             if (this._storageMode !== 'folder') return;
 
-            const filePath = this._pathJoin(this._storagePath, `${tableName}.rdb`);
+            const filePath = await this._pathJoin(this._storagePath, `${tableName}.rdb`);
             const tableData = {
                 rows: this._tables.get(tableName) || [],
                 schema: this._schemas.get(tableName) || null,
@@ -537,7 +540,7 @@
                 }
             };
 
-            this._saveToFile(filePath, { [tableName]: tableData });
+            await this._saveToFile(filePath, { [tableName]: tableData });
         }
 
         /**
@@ -577,16 +580,29 @@
         }
 
         /**
-         * Persist data based on storage mode
+         * Persist data based on storage mode (fire-and-forget)
          * @param {string} tableName
          * @private
          */
         _persistData(tableName = null) {
             if (this._storageMode === 'memory') return;
 
+            // Fire-and-forget async operation to maintain sync API
+            this._persistDataAsync(tableName).catch(error => {
+                this._lastError = error;
+                this._log('persist_error', { error: error.message, tableName });
+            });
+        }
+
+        /**
+         * Async persist data implementation
+         * @param {string} tableName
+         * @private
+         */
+        async _persistDataAsync(tableName = null) {
             if (this._storageMode === 'file') {
                 if (this._isBrowser) {
-                    this._saveToBrowserStorage();
+                    await this._saveToBrowserStorage();
                 } else {
                     // Save all tables to single file
                     const allData = {};
@@ -597,14 +613,14 @@
                         };
                     }
                     const filePath = this._storagePath.endsWith('.rdb') ? this._storagePath : `${this._storagePath}.rdb`;
-                    this._saveToFile(filePath, allData);
+                    await this._saveToFile(filePath, allData);
                 }
             } else if (this._storageMode === 'folder' && tableName) {
                 if (this._isBrowser) {
-                    this._saveTableToIndexedDB(tableName);
+                    await this._saveTableToIndexedDB(tableName);
                 } else {
                     // Save specific table
-                    this._saveTable(tableName);
+                    await this._saveTable(tableName);
                 }
             }
         }
@@ -613,7 +629,7 @@
          * Save all data to browser storage (localStorage)
          * @private
          */
-        _saveToBrowserStorage() {
+        async _saveToBrowserStorage() {
             try {
                 const allData = {};
                 for (const [name, rows] of this._tables.entries()) {
@@ -624,7 +640,7 @@
                 }
                 
                 const jsonData = JSON.stringify(allData);
-                const encryptedData = this._encrypt(jsonData);
+                const encryptedData = await this._encrypt(jsonData);
                 const storageKey = `rockdx_${this._storagePath.replace(/[^a-zA-Z0-9]/g, '_')}`;
                 
                 localStorage.setItem(storageKey, encryptedData);
@@ -663,10 +679,10 @@
                     const store = transaction.objectStore('tables');
                     const getAllRequest = store.getAll();
 
-                    getAllRequest.onsuccess = () => {
+                    getAllRequest.onsuccess = async () => {
                         const tableRecords = getAllRequest.result;
                         for (const record of tableRecords) {
-                            const decryptedData = this._decrypt(record.data);
+                            const decryptedData = await this._decrypt(record.data);
                             const tableData = JSON.parse(decryptedData);
                             this._tables.set(record.name, tableData.rows || []);
                             if (tableData.schema) {
@@ -707,7 +723,7 @@
                     }
                 };
 
-                request.onsuccess = (event) => {
+                request.onsuccess = async (event) => {
                     const db = event.target.result;
                     const transaction = db.transaction(['tables'], 'readwrite');
                     const store = transaction.objectStore('tables');
@@ -722,7 +738,7 @@
                     };
 
                     const jsonData = JSON.stringify(tableData);
-                    const encryptedData = this._encrypt(jsonData);
+                    const encryptedData = await this._encrypt(jsonData);
 
                     const putRequest = store.put({
                         name: tableName,
@@ -858,9 +874,12 @@
                 throw new Error(`Table '${tableName}' already exists`);
             }
 
-            // Load table if in lazy mode
+            // Load table if in lazy mode (fire-and-forget)
             if (this._lazyLoad && this._storageMode === 'folder') {
-                this._loadTable(tableName);
+                this._loadTable(tableName).catch(error => {
+                    this._lastError = error;
+                    this._log('lazy_load_error', { error: error.message, tableName });
+                });
             }
 
             this._tables.set(tableName, []);
@@ -986,9 +1005,20 @@
          * @returns {Array}
          */
         get (tableName) {
-            // Lazy load table if needed
+            // Lazy load table if needed (synchronous fallback)
             if (this._lazyLoad && this._storageMode === 'folder' && !this._loadedTables.has(tableName)) {
-                this._loadTable(tableName);
+                // Note: This is synchronous for API compatibility, 
+                // table might not be immediately available for lazy loading
+                this._loadTable(tableName).catch(error => {
+                    this._lastError = error;
+                    this._log('lazy_load_error', { error: error.message, tableName });
+                });
+                
+                // Return empty array if table not loaded yet
+                if (!this._tables.has(tableName)) {
+                    this._log('get', {tableName, resultCount: 0, storageMode: this._storageMode, note: 'lazy_loading'});
+                    return [];
+                }
             }
 
             if (!this._tables.has(tableName)) {
@@ -1262,7 +1292,10 @@
         insert (tableName, data) {
             // Lazy load table if needed
             if (this._lazyLoad && this._storageMode === 'folder' && !this._loadedTables.has(tableName)) {
-                this._loadTable(tableName);
+                this._loadTable(tableName).catch(error => {
+                    this._lastError = error;
+                    this._log('lazy_load_error', { error: error.message, tableName });
+                });
             }
 
             if (!this._tables.has(tableName)) {
@@ -1272,16 +1305,47 @@
             const table = this._tables.get(tableName);
             const newData = {...data};
 
-            // Handle ID generation
-            if (data.id === 'AUTO_INCREMENT') {
-                newData.id = this._generateSecureId();
-            } else if (!data.id) {
-                newData.id = this._generateSecureId();
+            // Handle ID generation - use sync fallback for all cases to maintain API
+            if (data.id === 'AUTO_INCREMENT' || !data.id) {
+                // Use simple secure ID generation for sync API compatibility
+                newData.id = this._generateSimpleSecureId();
+                this._lastInsertId = newData.id;
             }
 
-            // Store the last insert ID
-            this._lastInsertId = newData.id;
+            this._completeInsert(tableName, newData, table);
+            return this;
+        }
 
+        /**
+         * Generate a simple secure ID synchronously
+         * @returns {string}
+         * @private
+         */
+        _generateSimpleSecureId() {
+            const timestamp = Date.now().toString(36);
+            const random1 = Math.random().toString(36).substr(2);
+            const random2 = Math.random().toString(36).substr(2);
+            
+            if (this._isBrowser && window.crypto && window.crypto.getRandomValues) {
+                // Use Web Crypto API for better randomness
+                const array = new Uint8Array(8);
+                window.crypto.getRandomValues(array);
+                const cryptoRandom = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+                return `${timestamp}-${cryptoRandom}`.substr(0, 16);
+            }
+            
+            // Fallback for all environments
+            return `${timestamp}-${random1}${random2}`.substr(0, 16);
+        }
+
+        /**
+         * Complete the insert operation
+         * @param {string} tableName
+         * @param {Object} newData
+         * @param {Array} table
+         * @private
+         */
+        _completeInsert(tableName, newData, table) {
             if (this._timestamps) {
                 newData.created_at = new Date().toISOString();
                 newData.updated_at = new Date().toISOString();
@@ -1301,7 +1365,6 @@
             }
             
             this._log('insert', {tableName, id: newData.id, storageMode: this._storageMode});
-            return this;
         }
 
         /**
@@ -1337,7 +1400,10 @@
         update (tableName, data) {
             // Lazy load table if needed
             if (this._lazyLoad && this._storageMode === 'folder' && !this._loadedTables.has(tableName)) {
-                this._loadTable(tableName);
+                this._loadTable(tableName).catch(error => {
+                    this._lastError = error;
+                    this._log('lazy_load_error', { error: error.message, tableName });
+                });
             }
 
             if (!this._tables.has(tableName)) {
@@ -1396,7 +1462,10 @@
         delete (tableName) {
             // Lazy load table if needed
             if (this._lazyLoad && this._storageMode === 'folder' && !this._loadedTables.has(tableName)) {
-                this._loadTable(tableName);
+                this._loadTable(tableName).catch(error => {
+                    this._lastError = error;
+                    this._log('lazy_load_error', { error: error.message, tableName });
+                });
             }
 
             if (!this._tables.has(tableName)) {
@@ -1808,7 +1877,7 @@
 
             try {
                 if (this._storageMode === 'file') {
-                    this._persistData();
+                    await this._persistDataAsync();
                 } else if (this._storageMode === 'folder') {
                     if (this._isBrowser) {
                         // Save all tables to IndexedDB in parallel
@@ -1818,7 +1887,7 @@
                         await Promise.all(savePromises);
                     } else {
                         for (const tableName of this._tables.keys()) {
-                            this._persistData(tableName);
+                            await this._persistDataAsync(tableName);
                         }
                     }
                 }
@@ -1841,16 +1910,16 @@
             try {
                 if (this._storageMode === 'file') {
                     if (this._isBrowser) {
-                        this._initBrowserFileStorage();
+                        await this._initBrowserFileStorage();
                     } else {
                         const filePath = this._storagePath.endsWith('.rdb') ? this._storagePath : `${this._storagePath}.rdb`;
-                        this._loadFromFile(filePath);
+                        await this._loadFromFile(filePath);
                     }
                 } else if (this._storageMode === 'folder') {
                     if (this._isBrowser) {
                         await this._loadAllTablesFromIndexedDB();
                     } else {
-                        this._loadAllTables();
+                        await this._loadAllTables();
                     }
                 }
                 this._log('manual_load_complete', { storageMode: this._storageMode, environment: this._isBrowser ? 'browser' : 'node' });
@@ -1891,7 +1960,7 @@
                             compactPromises.push(this._saveTableToIndexedDB(tableName));
                         } else {
                             // For Node.js or browser file mode
-                            this._persistData(tableName);
+                            compactPromises.push(this._persistDataAsync(tableName));
                         }
                     }
                 }
