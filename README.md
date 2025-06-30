@@ -1,35 +1,17 @@
 # RockdexDB 💾
 
-![License](https://img.shields.io/npm/l/@odion-cloud/rockdx-db)
-![Version](https://img.shields.io/npm/v/@odion-cloud/rockdx-db)
-![Downloads](https://img.shields.io/npm/dt/@odion-cloud/rockdx-db)
+![License](https://img.shields.io/npm/l/@odion-cloud/rockdex-db)
+![Version](https://img.shields.io/npm/v/@odion-cloud/rockdex-db)
+![Downloads](https://img.shields.io/npm/dt/@odion-cloud/rockdex-db)
 
-A lightweight, powerful **cross-platform** database for JavaScript/TypeScript applications with support for multiple data structures, relationships, transactions, and schema validation. **Works seamlessly in both browsers and Node.js environments** with automatic environment detection.
-
-## ✨ Cross-Platform Storage
-
-### 🌐 **Browser Support** (NEW!)
-- 📁 **File Mode**: Uses `localStorage` for single-file storage
-- 📂 **Folder Mode**: Uses `IndexedDB` for distributed table storage
-- 🔐 **Encryption**: Browser-compatible XOR encryption with key derivation
-- 🔑 **Secure IDs**: Web Crypto API with fallback to secure random generation
-- 🚀 **Lazy Loading**: On-demand table loading from IndexedDB
-- ⚛️ **Atomic Operations**: Promise-based storage operations
-
-### 🖥️ **Node.js Support**
-- 📁 **File Mode**: Native filesystem with `.rdb` files
-- 📂 **Folder Mode**: Individual table files in directories
-- 🔐 **Encryption**: AES-256 encryption using Node.js crypto module
-- 🔑 **Secure IDs**: SHA-256 based cryptographically secure generation
-- 🚀 **Lazy Loading**: File-based on-demand loading
-- ⚛️ **Atomic Operations**: Temporary files with atomic rename
+A lightweight, powerful in-memory database for JavaScript/TypeScript applications with support for multiple data structures, relationships, transactions, and schema validation. Perfect for both browser and Node.js environments.
 
 ## Features ✨
 
 ### Storage Modes 💾
-- 🧠 **Memory Mode** - Lightning-fast in-memory operations (universal)
-- 📁 **File Mode** - Single file persistent storage (localStorage/filesystem)
-- 📂 **Folder Mode** - Distributed storage (IndexedDB/file system)
+- 🧠 **Memory Mode** - Lightning-fast in-memory operations
+- 📁 **File Mode** - Single file persistent storage (.rdb format)
+- 📂 **Folder Mode** - Distributed storage (each table = separate file)
 
 ### Core Features 🚀
 - 🏃‍♂️ Lightweight and blazing fast operations
@@ -41,52 +23,90 @@ A lightweight, powerful **cross-platform** database for JavaScript/TypeScript ap
 - 🔍 Advanced querying with multiple conditions
 - 📈 Indexing for faster searches
 - 🔄 Import/Export JSON functionality
-- 📱 **Universal compatibility** (Browser + Node.js)
+- 📱 Browser and Node.js compatibility
 - 🧮 Aggregation functions (count, avg, sum, min, max)
 - 📄 Pagination support
 - 🎯 Custom raw queries
 
 ### Advanced Features 🔥
-- 🔐 **Cross-Platform Encryption** - Secure data storage (AES-256/XOR)
-- 🚀 **Lazy Loading** - Load collections on demand
+- 🔐 **AES-256 Encryption** - Secure data storage with encryption keys (Node.js & Browser)
+- 🚀 **Lazy Loading** - Load collections on demand (folder mode)
 - 💰 **Memory Cache** - Configurable cache size for performance
-- 🔑 **Secure ID Generation** - Crypto-based unique IDs
+- 🔑 **Secure ID Generation** - SHA-256 based unique IDs with crypto
 - ⚛️ **Atomic Operations** - All writes are atomic with rollback support
 - 📊 **Storage Analytics** - Detailed storage statistics and monitoring
 - 🎯 **Default Data** - Initialize with predefined data structures
-- 🌐 **Environment Detection** - Automatic browser/Node.js detection
+- 🌐 **Cross-Platform** - Works in Node.js, modern browsers, and legacy browsers
+- 📁 **File System Access** - Real file operations in browsers (when supported)
+- 🔄 **Automatic Fallbacks** - Graceful degradation for unsupported environments
 
 ## Installation 📦
 
 ### NPM
 ```bash
-npm install @odion-cloud/rockdx-db
+npm install @odion-cloud/rockdex-db
 ```
 
 ### Yarn
 ```bash
-yarn add @odion-cloud/rockdx-db
+yarn add @odion-cloud/rockdex-db
 ```
 
-### Browser (CDN)
+### Browser
 ```html
-<script src="https://unpkg.com/@odion-cloud/rockdx-db"></script>
+<script src="https://unpkg.com/@odion-cloud/rockdex-db"></script>
 ```
+
+### Browser Compatibility 🌐
+RockdexDB now works seamlessly in both Node.js and browser environments:
+
+- **✅ Node.js**: Full file system access with fs, path, and crypto modules
+- **✅ Modern Browsers**: File System Access API for real file/folder operations  
+- **✅ Legacy Browsers**: Download/upload fallback for file operations
+- **✅ Cross-Platform**: Same API works everywhere with automatic environment detection
 
 ## Quick Start 🚀
 
-### Universal Example (Works in Browser & Node.js)
+### Memory Mode (Default)
 ```javascript
-// Automatic environment detection - works everywhere!
-const db = new RockdxDB({
-    storageMode: 'file', // localStorage in browser, filesystem in Node.js
-    storagePath: './my-database',
-    encryptionKey: 'your-secret-key',
+// Initialize RockdxDB with memory storage
+const db = new RockdexDB({
+    storageMode: 'memory', // In-memory only
+    logging: true,
+    timestamps: true,
+    softDelete: true
+});
+```
+
+### File Storage Mode  
+```javascript
+// Single file persistent storage
+const db = new RockdexDB({
+    storageMode: 'file',
+    storagePath: './my-database.rdb',
+    encryptionKey: 'your-secret-key', // Optional AES-256 encryption
     logging: true,
     timestamps: true
 });
+```
 
-// Create table with schema
+### Folder Storage Mode
+```javascript
+// Distributed file storage (each table = separate file)
+const db = new RockdexDB({
+    storageMode: 'folder',
+    storagePath: './my-database-folder',
+    lazyLoad: true, // Load tables on demand
+    cacheSize: 50, // Memory cache size in MB
+    encryptionKey: 'your-secret-key',
+    logging: true,
+    timestamps: true,
+    defaultData: {
+        users: [{ id: 1, name: 'Admin', email: 'admin@example.com' }]
+    }
+});
+
+// Create a table with schema
 const userSchema = {
     id: { type: 'string', required: true },
     name: { type: 'string', required: true },
@@ -96,161 +116,170 @@ const userSchema = {
 
 db.createTable('users', userSchema);
 
-// Insert with secure ID generation
+// Insert data with secure ID generation
 db.insert('users', {
-    id: RockdxDB.AUTO_INCREMENT,
+    id: RockdexDB.AUTO_INCREMENT, // Generates secure SHA-256 based ID
     name: 'John Doe',
     email: 'john@example.com',
-    age: 30
+    age: 20
 });
 
 // Query data
-const users = db.where('age', 25, '>').get('users');
-console.log('Adult users:', users);
-
-// Save to storage (localStorage in browser, file in Node.js)
-await db.saveToStorage();
+const users = db.where('name', 'John Doe').get('users');
 ```
-
-### Browser-Specific Example
-```javascript
-// Browser: File mode uses localStorage
-const browserDb = new RockdxDB({
-    storageMode: 'file',
-    storagePath: 'my-app-data',
-    encryptionKey: 'browser-secret',
-    logging: true
-});
-
-// Browser: Folder mode uses IndexedDB
-const folderDb = new RockdxDB({
-    storageMode: 'folder',
-    storagePath: 'my-app-tables',
-    lazyLoad: true, // Load tables on demand from IndexedDB
-    encryptionKey: 'folder-secret'
-});
-```
-
-### Node.js-Specific Example
-```javascript
-// Node.js: File mode uses filesystem
-const nodeDb = new RockdxDB({
-    storageMode: 'file',
-    storagePath: './data/app.rdb',
-    encryptionKey: 'node-secret',
-    logging: true
-});
-
-// Node.js: Folder mode uses file system
-const nodeFolder = new RockdxDB({
-    storageMode: 'folder',
-    storagePath: './data/tables/',
-    lazyLoad: true, // Load tables on demand from files
-    encryptionKey: 'folder-secret'
-});
-```
-
-## Storage Modes Comparison 📊
-
-| Feature | Memory | File (Browser) | File (Node.js) | Folder (Browser) | Folder (Node.js) |
-|---------|--------|----------------|----------------|------------------|------------------|
-| **Persistence** | ❌ None | ✅ localStorage | ✅ .rdb file | ✅ IndexedDB | ✅ Multiple files |
-| **Performance** | 🚀 Fastest | ⚡ Fast | ⚡ Fast | 📊 Good | 📊 Good |
-| **Storage Limit** | 💾 RAM only | 📦 ~10MB | 💽 Unlimited | 💾 ~250MB+ | 💽 Unlimited |
-| **Lazy Loading** | ❌ N/A | ❌ No | ❌ No | ✅ Yes | ✅ Yes |
-| **Multi-table** | ✅ Yes | ✅ Single file | ✅ Single file | ✅ Per table | ✅ Per table |
-| **Encryption** | ❌ No | ✅ XOR+Key | ✅ AES-256 | ✅ XOR+Key | ✅ AES-256 |
 
 ## Advanced Usage 🔥
 
-### Cross-Platform Encryption
+### Relationships
 ```javascript
-// Works in both browser and Node.js with appropriate encryption
-const encryptedDb = new RockdxDB({
-    storageMode: 'file',
-    storagePath: 'secure-data',
-    encryptionKey: 'super-secret-key-256',
-    logging: true
-});
+// Define relationships between tables
+db.setRelation('posts', 'users', 'hasOne', 'user_id');
 
-// Data is automatically encrypted/decrypted
-encryptedDb.createTable('secrets');
-encryptedDb.insert('secrets', { 
-    password: 'top-secret-data',
-    apiKey: 'sk-1234567890abcdef'
-});
+// Join tables
+const postsWithUsers = db.join('posts', 'users', 'user_id', 'id');
+```
 
-await encryptedDb.saveToStorage();
-// Data is encrypted in localStorage (browser) or file (Node.js)
+### Transactions
+```javascript
+db.transaction((tx) => {
+    tx.insert('users', { /* user data */ });
+    tx.insert('posts', { /* post data */ });
+    // Will rollback if any operation fails
+});
+```
+
+### Schema Validation
+```javascript
+const schema = {
+    title: { type: 'string', required: true },
+    views: { type: 'number', min: 0 },
+    status: { type: 'string', pattern: /^(draft|published)$/ }
+};
+
+db.createTable('posts', schema);
+```
+
+### Advanced Queries
+```javascript
+db.whereOperator('age', '>', 18)
+  .whereLike('name', '%John%')
+  .whereIn('status', ['active', 'pending'])
+  .orderBy('created_at', 'DESC')
+  .limit(10)
+  .get('users');
+```
+
+### Pagination
+```javascript
+const result = db.paginate('users', 1, 10);
+console.log(result.data); // Current page data
+console.log(result.pagination); // Pagination info
 ```
 
 ### Storage Management
 ```javascript
-// Universal storage management
+// Storage statistics
 const stats = db.getStorageStats();
 console.log(stats);
 /*
 {
   storageMode: 'folder',
-  storagePath: 'my-database',
   encrypted: true,
   lazyLoad: true,
-  environment: 'browser', // or 'node'
-  tables: { 
-    users: { 
-      totalRecords: 100, 
-      activeRecords: 95, 
-      deletedRecords: 5,
-      loaded: true 
-    } 
-  },
+  tables: { users: { totalRecords: 100, activeRecords: 95, deletedRecords: 5 } },
   totalRecords: 95,
-  memoryUsage: 2.34, // MB
-  loadedTables: ['users']
+  memoryUsage: 2.34 // MB
 }
 */
 
-// Cross-platform operations
-await db.saveToStorage();     // Save to localStorage/IndexedDB/files
-await db.loadFromStorage();   // Load from storage
-await db.compactStorage();    // Remove soft-deleted records
+// Manual save (useful for batch operations)
+await db.saveToStorage();
+
+// Compact storage (remove soft-deleted records)
+await db.compactStorage();
+
+// Manual load
+await db.loadFromStorage();
 ```
 
-### Environment Detection
+### Encryption
 ```javascript
-// RockdxDB automatically detects the environment
 const db = new RockdxDB({
-    storageMode: 'folder',
-    storagePath: 'my-data',
-    logging: (msg) => {
-        console.log(`[${db._isBrowser ? 'Browser' : 'Node.js'}] ${msg}`);
-    }
+    storageMode: 'file',
+    storagePath: './encrypted-db.rdb',
+    encryptionKey: 'your-256-bit-secret-key',
+    logging: true
 });
 
-// Check environment
-if (db._isBrowser) {
-    console.log('Running in browser - using IndexedDB');
-} else {
-    console.log('Running in Node.js - using filesystem');
-}
+// All data is automatically encrypted/decrypted
+db.insert('secrets', { password: 'super-secret-data' });
 ```
 
-## Browser Testing 🧪
+### Browser Usage 🌐
 
-Try the live browser examples:
-- **Basic Usage**: `examples/browser.html`
-- **Cross-Platform Storage**: `examples/browser-storage.html`
+#### Modern Browsers (File System Access API)
+```javascript
+// Works in Chrome 86+, Edge 86+, and other Chromium-based browsers
+const db = new RockdxDB({
+    storageMode: 'folder',
+    storagePath: 'my-app-data', // Folder name for the user to select
+    encryptionKey: 'optional-encryption-key',
+    logging: true
+});
 
-Open these files in your browser to test all storage modes:
-```bash
-# Serve the examples locally
-npx serve examples/
-# Then visit http://localhost:3000/browser-storage.html
+// Wait for storage to be ready (user will be prompted to select/create folder)
+await db.ready();
+
+// All operations work the same as Node.js
+db.createTable('users');
+db.insert('users', { name: 'Browser User', email: 'user@browser.com' });
+
+// Manual save/load operations
+await db.saveToStorage(); // Saves to selected folder/file
+await db.loadFromStorage(); // Loads from selected folder/file
+```
+
+#### Legacy Browser Support
+```javascript
+// For browsers without File System Access API
+const db = new RockdxDB({
+    storageMode: 'file',
+    storagePath: 'my-database.rdb',
+    logging: true
+});
+
+// Operations work normally
+db.createTable('users');
+db.insert('users', { name: 'User', email: 'user@example.com' });
+
+// Save triggers file download
+await db.saveToStorage(); // Downloads 'my-database.rdb' file
+
+// Load requires file input (handled automatically)
+await db.loadFromStorage(); // Prompts user to select file
+```
+
+#### Web Worker Support
+```javascript
+// RockdxDB works in Web Workers for background processing
+// In your main thread:
+const worker = new Worker('database-worker.js');
+
+// In database-worker.js:
+importScripts('https://unpkg.com/@odion-cloud/rockdx-db');
+
+const db = new RockdxDB({
+    storageMode: 'memory', // Memory mode works great in workers
+    logging: true
+});
+
+// Perform heavy database operations without blocking UI
 ```
 
 ## API Reference 📚
 
 ### Core Methods
+- `ready()` - Wait for storage initialization (important for browser file operations)
 - `createTable(tableName, schema?)` - Create a new table
 - `setTable(tableName, data, schema?)` - Set table data with optional schema
 - `insert(tableName, data)` - Insert a single record
@@ -258,12 +287,6 @@ npx serve examples/
 - `delete(tableName)` - Delete records matching conditions
 - `get(tableName)` - Get all matching records
 - `getOne(tableName)` - Get first matching record
-
-### Cross-Platform Storage Methods
-- `saveToStorage()` - Manually save all data to storage
-- `loadFromStorage()` - Manually load all data from storage
-- `compactStorage()` - Remove soft-deleted records and optimize storage
-- `getStorageStats()` - Get detailed storage statistics and usage
 
 ### Query Methods
 - `where(field, value, operator)` - Add WHERE condition
@@ -282,55 +305,11 @@ npx serve examples/
 - `getStats()` - Get database statistics
 - `truncate(tableName)` - Clear table data
 
-## Browser Compatibility 🌐
-
-### Modern Browsers
-- ✅ Chrome 50+
-- ✅ Firefox 45+
-- ✅ Safari 10+
-- ✅ Edge 79+
-
-### Storage Support
-- ✅ **localStorage**: All modern browsers
-- ✅ **IndexedDB**: All modern browsers (IE10+)
-- ✅ **Web Crypto API**: Modern browsers (fallback available)
-
-### Legacy Browser Support
-- 📦 **localStorage**: IE8+
-- 📦 **IndexedDB**: IE10+ (with polyfill)
-- 🔄 **Crypto Fallback**: Custom secure random generation
-
-## Migration Guide 🔄
-
-### From Previous Versions
-```javascript
-// Old version (Node.js only)
-const db = new RockdxDB({ logging: true });
-
-// New version (Universal)
-const db = new RockdxDB({
-    storageMode: 'memory', // Same behavior as before
-    logging: true
-});
-
-// To add persistence
-const persistentDb = new RockdxDB({
-    storageMode: 'file', // localStorage in browser, filesystem in Node.js
-    storagePath: 'my-database',
-    logging: true
-});
-```
-
-## Performance 📈
-
-### Benchmark Results (1000 records)
-- **Memory Mode**: ~2ms (baseline)
-- **File Mode (Browser)**: ~15ms (localStorage)
-- **File Mode (Node.js)**: ~8ms (filesystem)
-- **Folder Mode (Browser)**: ~25ms (IndexedDB)
-- **Folder Mode (Node.js)**: ~12ms (filesystem)
-
-*Results may vary based on data size and browser/system performance*
+### Storage Management
+- `saveToStorage()` - Manually save all data to storage
+- `loadFromStorage()` - Manually load all data from storage
+- `compactStorage()` - Remove soft-deleted records and optimize storage
+- `getStorageStats()` - Get detailed storage statistics and usage
 
 ## License 📄
 
@@ -338,7 +317,7 @@ MIT © [Kelly Igiogbe](https://github.com/odion-cloud)
 
 ## Contributing 🤝
 
-Contributions, issues, and feature requests are welcome! Feel free to check [issues page](https://github.com/odion-cloud/rockdx-db/issues).
+Contributions, issues, and feature requests are welcome! Feel free to check [issues page](https://github.com/odion-cloud/rockdex-db/issues).
 
 ## Support 🌟
 

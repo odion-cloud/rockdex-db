@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RockdexDB Cross-Platform File Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .storage-section {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        
+        .storage-mode {
+            border: 2px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .storage-mode.active { border-color: #007bff; }
+        
+        h1 { color: #333; text-align: center; }
+        h2 { color: #666; margin-top: 0; }
+        
+        .api-support {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .api-support.supported { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .api-support.not-supported { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        
+        .demo-data {
+            margin: 10px 0;
+        }
+        
+        .file-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🗂️ RockdexDB Cross-Platform File Storage Demo</h1>
+
+<!-- API Support Check -->
+<div class="storage-section">
+    <h2>🔍 Browser Capabilities</h2>
+    <div id="apiSupport" class="api-support">Checking browser capabilities...</div>
+    <div id="apiDetails" class="result"></div>
+</div>
+
+<!-- Storage Mode Selection -->
+<div class="storage-section">
+    <h2>📁 Storage Modes</h2>
+    
+    <div class="storage-mode" data-mode="memory">
+        <h3>🧠 Memory Mode</h3>
+        <p>Lightning-fast in-memory operations. Data persists only during the session.</p>
+        <button onclick="initializeStorage('memory')">Use Memory Mode</button>
+    </div>
+    
+    <div class="storage-mode" data-mode="file">
+        <h3>📄 File Mode</h3>
+        <p>Single file persistent storage. Perfect for portable database files.</p>
+        <button onclick="initializeStorage('file')">Use File Mode</button>
+    </div>
+    
+    <div class="storage-mode" data-mode="folder">
+        <h3>📂 Folder Mode</h3>
+        <p>Distributed storage with each table as a separate file. Ideal for large datasets.</p>
+        <button onclick="initializeStorage('folder')">Use Folder Mode</button>
+    </div>
+</div>
+
+<!-- Database Operations -->
+<div class="storage-section">
+    <h2>🎛️ Database Operations</h2>
+    <div id="dbStatus" class="file-info">No database initialized</div>
+    
+    <div class="demo-data">
+        <h3>📝 Sample Data Operations</h3>
+        <button onclick="insertSampleData()" id="insertBtn" disabled>Insert Sample Data</button>
+        <button onclick="queryData()" id="queryBtn" disabled>Query Data</button>
+        <button onclick="updateData()" id="updateBtn" disabled>Update Data</button>
+        <button onclick="deleteData()" id="deleteBtn" disabled>Delete Data</button>
+    </div>
+    
+    <div class="demo-data">
+        <h3>💾 Storage Management</h3>
+        <button onclick="saveToStorage()" id="saveBtn" disabled>Save to Storage</button>
+        <button onclick="loadFromStorage()" id="loadBtn" disabled>Load from Storage</button>
+        <button onclick="compactStorage()" id="compactBtn" disabled>Compact Storage</button>
+        <button onclick="getStorageStats()" id="statsBtn" disabled>Storage Stats</button>
+    </div>
+    
+    <div class="demo-data">
+        <h3>🔐 Encryption Demo</h3>
+        <button onclick="initializeWithEncryption()" id="encryptBtn">Enable Encryption</button>
+        <button onclick="testEncryptedOperations()" id="encryptTestBtn" disabled>Test Encrypted Operations</button>
+    </div>
+</div>
+
+<!-- Results Display -->
+<div class="storage-section">
+    <h2>📊 Results</h2>
+    <div id="results" class="result">Ready to demonstrate cross-platform file storage...</div>
+</div>
+
+<!-- Load RockdexDB -->
+<script src="../rockdex-db.js"></script>
+
+<script>
+let db = null;
+let currentMode = null;
+
+// Utility functions
+function log(message, type = 'info') {
+    const results = document.getElementById('results');
+    const timestamp = new Date().toLocaleTimeString();
+    const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+    results.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+    results.scrollTop = results.scrollHeight;
+    console.log(`[${timestamp}] ${message}`);
+}
+
+function updateDbStatus(message) {
+    document.getElementById('dbStatus').innerHTML = message;
+}
+
+function enableButtons(enabled = true) {
+    const buttons = ['insertBtn', 'queryBtn', 'updateBtn', 'deleteBtn', 'saveBtn', 'loadBtn', 'compactBtn', 'statsBtn'];
+    buttons.forEach(id => {
+        document.getElementById(id).disabled = !enabled;
+    });
+}
+
+// Check browser capabilities
+function checkBrowserCapabilities() {
+    const apiSupport = document.getElementById('apiSupport');
+    const apiDetails = document.getElementById('apiDetails');
+    
+    const capabilities = {
+        fileSystemAccess: 'showDirectoryPicker' in window,
+        webCrypto: window.crypto && window.crypto.subtle,
+        fileAPI: window.File && window.FileReader && window.FileList && window.Blob,
+        downloads: 'download' in document.createElement('a')
+    };
+    
+    const hasFileSystemAccess = capabilities.fileSystemAccess;
+    
+    apiSupport.className = `api-support ${hasFileSystemAccess ? 'supported' : 'not-supported'}`;
+    apiSupport.innerHTML = hasFileSystemAccess 
+        ? '✅ File System Access API Supported - Full file/folder operations available!'
+        : '⚠️ File System Access API Not Supported - Using download/upload fallback';
+    
+    let details = 'Browser Capabilities:\n';
+    details += `• File System Access API: ${capabilities.fileSystemAccess ? '✅ Yes' : '❌ No'}\n`;
+    details += `• Web Crypto API: ${capabilities.webCrypto ? '✅ Yes' : '❌ No'}\n`;
+    details += `• File API: ${capabilities.fileAPI ? '✅ Yes' : '❌ No'}\n`;
+    details += `• Download Support: ${capabilities.downloads ? '✅ Yes' : '❌ No'}\n\n`;
+    
+    if (!hasFileSystemAccess) {
+        details += 'Note: Without File System Access API, RockdexDB will use:\n';
+        details += '• Download files for saving data\n';
+        details += '• File input for loading data\n';
+        details += '• All operations still work, just with different UX\n';
+    }
+    
+    apiDetails.textContent = details;
+}
+
+// Initialize storage mode
+async function initializeStorage(mode) {
+    try {
+        currentMode = mode;
+        
+        // Update UI
+        document.querySelectorAll('.storage-mode').forEach(el => el.classList.remove('active'));
+        document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+        
+        log(`Initializing RockdexDB in ${mode} mode...`, 'info');
+        
+        const config = {
+            storageMode: mode,
+            logging: (msg) => log(msg, 'info'),
+            timestamps: true,
+            softDelete: true
+        };
+        
+        if (mode !== 'memory') {
+            config.storagePath = mode === 'file' ? 'rockdexdb-demo.rdb' : 'rockdexdb-demo-folder';
+        }
+        
+        db = new RockdexDB(config);
+        
+        // Wait for storage to be ready
+        await db.ready();
+        
+        // Create sample table
+        const userSchema = {
+            id: { type: 'string', required: true },
+            name: { type: 'string', required: true },
+            email: { type: 'string', required: true },
+            age: { type: 'number', min: 0, max: 150 }
+        };
+        
+        db.createTable('users', userSchema);
+        
+        updateDbStatus(`✅ Database initialized in ${mode} mode`);
+        enableButtons(true);
+        
+        log(`✅ RockdexDB successfully initialized in ${mode} mode!`, 'success');
+        
+        if (mode !== 'memory') {
+            log('💡 You can now use file operations. Data will persist across sessions.', 'info');
+        }
+        
+    } catch (error) {
+        log(`❌ Error initializing storage: ${error.message}`, 'error');
+        updateDbStatus(`❌ Initialization failed: ${error.message}`);
+    }
+}
+
+// Database operations
+async function insertSampleData() {
+    if (!db) return;
+    
+    try {
+        log('📝 Inserting sample data...', 'info');
+        
+        const sampleUsers = [
+            { name: 'Alice Johnson', email: 'alice@example.com', age: 28 },
+            { name: 'Bob Smith', email: 'bob@example.com', age: 35 },
+            { name: 'Carol Davis', email: 'carol@example.com', age: 42 }
+        ];
+        
+        sampleUsers.forEach(user => {
+            db.insert('users', {
+                id: RockdexDB.AUTO_INCREMENT,
+                ...user
+            });
+        });
+        
+        const count = db.count('users');
+        log(`✅ Inserted ${sampleUsers.length} users. Total users: ${count}`, 'success');
+        
+    } catch (error) {
+        log(`❌ Error inserting data: ${error.message}`, 'error');
+    }
+}
+
+async function queryData() {
+    if (!db) return;
+    
+    try {
+        log('🔍 Querying data...', 'info');
+        
+        const allUsers = db.get('users');
+        log(`Found ${allUsers.length} users:`, 'success');
+        log(JSON.stringify(allUsers, null, 2), 'info');
+        
+        // Advanced query
+        const adults = db.whereOperator('age', '>', 30).get('users');
+        log(`Adults over 30: ${adults.length}`, 'info');
+        log(JSON.stringify(adults, null, 2), 'info');
+        
+    } catch (error) {
+        log(`❌ Error querying data: ${error.message}`, 'error');
+    }
+}
+
+async function updateData() {
+    if (!db) return;
+    
+    try {
+        log('✏️ Updating data...', 'info');
+        
+        // Update users with age > 30
+        db.whereOperator('age', '>', 30)
+          .update('users', { status: 'senior' });
+        
+        const updatedUsers = db.where('status', 'senior').get('users');
+        log(`✅ Updated ${updatedUsers.length} users with senior status`, 'success');
+        log(JSON.stringify(updatedUsers, null, 2), 'info');
+        
+    } catch (error) {
+        log(`❌ Error updating data: ${error.message}`, 'error');
+    }
+}
+
+async function deleteData() {
+    if (!db) return;
+    
+    try {
+        log('🗑️ Soft deleting data...', 'info');
+        
+        // Soft delete users with age < 30
+        db.whereOperator('age', '<', 30).delete('users');
+        
+        const remainingUsers = db.get('users');
+        log(`✅ Soft deleted users. Active users remaining: ${remainingUsers.length}`, 'success');
+        log(JSON.stringify(remainingUsers, null, 2), 'info');
+        
+    } catch (error) {
+        log(`❌ Error deleting data: ${error.message}`, 'error');
+    }
+}
+
+// Storage operations
+async function saveToStorage() {
+    if (!db || currentMode === 'memory') {
+        log('⚠️ Save to storage not applicable for memory mode', 'warning');
+        return;
+    }
+    
+    try {
+        log('💾 Saving to storage...', 'info');
+        await db.saveToStorage();
+        log('✅ Data saved to storage successfully!', 'success');
+        
+    } catch (error) {
+        log(`❌ Error saving to storage: ${error.message}`, 'error');
+    }
+}
+
+async function loadFromStorage() {
+    if (!db || currentMode === 'memory') {
+        log('⚠️ Load from storage not applicable for memory mode', 'warning');
+        return;
+    }
+    
+    try {
+        log('📂 Loading from storage...', 'info');
+        await db.loadFromStorage();
+        log('✅ Data loaded from storage successfully!', 'success');
+        
+        const count = db.count('users');
+        log(`Loaded ${count} users from storage`, 'info');
+        
+    } catch (error) {
+        log(`❌ Error loading from storage: ${error.message}`, 'error');
+    }
+}
+
+async function compactStorage() {
+    if (!db) return;
+    
+    try {
+        log('🗜️ Compacting storage...', 'info');
+        await db.compactStorage();
+        log('✅ Storage compacted successfully!', 'success');
+        
+        const stats = db.getStorageStats();
+        log(`Storage stats after compaction:`, 'info');
+        log(JSON.stringify(stats, null, 2), 'info');
+        
+    } catch (error) {
+        log(`❌ Error compacting storage: ${error.message}`, 'error');
+    }
+}
+
+async function getStorageStats() {
+    if (!db) return;
+    
+    try {
+        log('📊 Getting storage statistics...', 'info');
+        
+        const stats = db.getStorageStats();
+        const dbStats = db.getStats();
+        
+        log('📈 Storage Statistics:', 'success');
+        log(JSON.stringify(stats, null, 2), 'info');
+        
+        log('📈 Database Statistics:', 'success');
+        log(JSON.stringify(dbStats, null, 2), 'info');
+        
+    } catch (error) {
+        log(`❌ Error getting stats: ${error.message}`, 'error');
+    }
+}
+
+// Encryption demo
+async function initializeWithEncryption() {
+    try {
+        log('🔐 Initializing encrypted database...', 'info');
+        
+        const encryptedDb = new RockdexDB({
+            storageMode: 'file',
+            storagePath: 'encrypted-demo.rdb',
+            encryptionKey: 'my-super-secret-256-bit-encryption-key-12345',
+            logging: (msg) => log(`[ENCRYPTED] ${msg}`, 'info'),
+            timestamps: true
+        });
+        
+        await encryptedDb.ready();
+        
+        encryptedDb.createTable('secrets', {
+            id: { type: 'string', required: true },
+            data: { type: 'string', required: true },
+            classified: { type: 'boolean', required: true }
+        });
+        
+        // Store encrypted db globally for demo
+        window.encryptedDb = encryptedDb;
+        
+        document.getElementById('encryptTestBtn').disabled = false;
+        
+        log('✅ Encrypted database initialized! All data will be encrypted with AES-256.', 'success');
+        
+    } catch (error) {
+        log(`❌ Error initializing encrypted database: ${error.message}`, 'error');
+    }
+}
+
+async function testEncryptedOperations() {
+    const encryptedDb = window.encryptedDb;
+    if (!encryptedDb) {
+        log('❌ Encrypted database not initialized', 'error');
+        return;
+    }
+    
+    try {
+        log('🔐 Testing encrypted operations...', 'info');
+        
+        // Insert sensitive data
+        encryptedDb.insert('secrets', {
+            id: RockdexDB.AUTO_INCREMENT,
+            data: 'Top Secret Information - Nuclear Codes: 12345',
+            classified: true
+        });
+        
+        encryptedDb.insert('secrets', {
+            id: RockdexDB.AUTO_INCREMENT,
+            data: 'Confidential: User passwords and personal data',
+            classified: true
+        });
+        
+        // Query encrypted data
+        const secrets = encryptedDb.get('secrets');
+        log(`✅ Retrieved ${secrets.length} encrypted records:`, 'success');
+        log(JSON.stringify(secrets, null, 2), 'info');
+        
+        // Save encrypted data to file
+        await encryptedDb.saveToStorage();
+        log('💾 Encrypted data saved to file. Data is encrypted on disk!', 'success');
+        
+    } catch (error) {
+        log(`❌ Error with encrypted operations: ${error.message}`, 'error');
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    checkBrowserCapabilities();
+    log('🚀 RockdexDB Cross-Platform File Storage Demo Ready!', 'success');
+    log('Select a storage mode to begin...', 'info');
+});
+</script>
+
+</body>
+</html> 

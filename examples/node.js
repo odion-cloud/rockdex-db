@@ -55,20 +55,20 @@ async function testRockdexDB() {
             age: 25
         });
 
-        // Get the last inserted user ID
-        const lastUserId = db.getLastInsertId();
+        // Get the first user's ID for posts
+        const firstUserId = db.get('users')[0].id;
 
         // Insert posts
         db.insert('posts', {
             id: RockdexDB.AUTO_INCREMENT,
-            user_id: lastUserId,
+            user_id: firstUserId,
             title: 'First Post',
             content: 'This is my first post!'
         });
 
         db.insert('posts', {
             id: RockdexDB.AUTO_INCREMENT,
-            user_id: lastUserId,
+            user_id: firstUserId,
             title: 'Second Post',
             content: 'Another great post!'
         });
@@ -81,12 +81,11 @@ async function testRockdexDB() {
         console.log(db.get('users'));
 
         // Get user by ID
-        const firstUserId = db.get('users')[0].id;
-        console.log(`\nUser with ID ${firstUserId}:`);
+        console.log('\nUser with first ID:');
         console.log(db.where('id', firstUserId).getOne('users'));
 
         // Get posts with conditions
-        console.log(`\nPosts by user ${firstUserId}:`);
+        console.log('\nPosts by first user:');
         console.log(db.where('user_id', firstUserId).get('posts'));
 
         // 4. Test relationships
