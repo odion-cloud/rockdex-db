@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RockdexDB Browser Storage Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .storage-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+        }
+        .result {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .success { color: #48bb78; }
+        .error { color: #f56565; }
+        .info { color: #4299e1; }
+        .warning { color: #ed8936; }
+        
+        button {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        h2 {
+            color: #4a5568;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #007bff;
+            margin-right: 10px;
+        }
+        
+        .stats-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .badge.success { background: #c6f6d5; color: #22543d; }
+        .badge.error { background: #fed7d7; color: #742a2a; }
+        .badge.warning { background: #feebc8; color: #7b341e; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚀 RockdexDB Browser Storage Test</h1>
+    
+    <div class="feature-list">
+        <div class="feature-card">
+            <h3>🧠 Memory Mode</h3>
+            <p>Ultra-fast in-memory operations</p>
+            <span class="badge success" id="memorySupport">Ready</span>
+        </div>
+        <div class="feature-card">
+            <h3>📁 File Mode</h3>
+            <p>localStorage persistence</p>
+            <span class="badge" id="localStorageSupport">Checking...</span>
+        </div>
+        <div class="feature-card">
+            <h3>📂 Folder Mode</h3>
+            <p>IndexedDB distributed storage</p>
+            <span class="badge" id="indexedDBSupport">Checking...</span>
+        </div>
+        <div class="feature-card">
+            <h3>🔐 Encryption</h3>
+            <p>AES-256 data protection</p>
+            <span class="badge" id="cryptoSupport">Checking...</span>
+        </div>
+    </div>
+
+    <div class="storage-section">
+        <h2>📁 File Mode Testing</h2>
+        <p>Tests localStorage-based file storage with optional encryption</p>
+        <button onclick="testFileMode()">Test Basic File Storage</button>
+        <button onclick="testEncryptedFileMode()">Test Encrypted Storage</button>
+        <button onclick="testFilePersistence()">Test Persistence</button>
+        <div id="fileResult" class="result"></div>
+    </div>
+
+    <div class="storage-section">
+        <h2>📂 Folder Mode Testing</h2>
+        <p>Tests IndexedDB-based distributed storage with lazy loading</p>
+        <button onclick="testFolderMode()">Test Basic Folder Storage</button>
+        <button onclick="testLazyLoading()">Test Lazy Loading</button>
+        <button onclick="testMultipleTables()">Test Multiple Tables</button>
+        <div id="folderResult" class="result"></div>
+    </div>
+
+    <div class="storage-section">
+        <h2>🔄 Storage Management</h2>
+        <p>Tests manual save, load, compact, and statistics operations</p>
+        <button onclick="testStorageManagement()">Test Management Operations</button>
+        <button onclick="testStorageStats()">Show Storage Statistics</button>
+        <button onclick="clearAllStorage()">Clear All Storage</button>
+        <div id="managementResult" class="result"></div>
+    </div>
+
+    <div class="storage-section">
+        <h2>⚡ Performance Testing</h2>
+        <p>Compare performance across different storage modes</p>
+        <button onclick="runPerformanceTest()">Run Performance Benchmark</button>
+        <button onclick="runStressTest()">Run Stress Test</button>
+        <div id="performanceResult" class="result"></div>
+    </div>
+</div>
+
+<!-- Load RockdexDB -->
+<script src="../rockdex-db.js"></script>
+
+<script>
+    // Utility functions
+    function log(elementId, message, type = 'success') {
+        const element = document.getElementById(elementId);
+        const timestamp = new Date().toLocaleTimeString();
+        const icon = type === 'error' ? '❌' : type === 'warning' ? '⚠️' : type === 'info' ? 'ℹ️' : '✅';
+        element.innerHTML += `<div class="${type}">[${timestamp}] ${icon} ${message}</div>`;
+        element.scrollTop = element.scrollHeight;
+    }
+
+    function clearResults(elementId) {
+        document.getElementById(elementId).innerHTML = '';
+    }
+
+    // Check browser capabilities
+    function checkBrowserSupport() {
+        // LocalStorage
+        const hasLocalStorage = !!window.localStorage;
+        document.getElementById('localStorageSupport').textContent = hasLocalStorage ? 'Supported' : 'Not Supported';
+        document.getElementById('localStorageSupport').className = `badge ${hasLocalStorage ? 'success' : 'error'}`;
+
+        // IndexedDB
+        const hasIndexedDB = !!window.indexedDB;
+        document.getElementById('indexedDBSupport').textContent = hasIndexedDB ? 'Supported' : 'Not Supported';
+        document.getElementById('indexedDBSupport').className = `badge ${hasIndexedDB ? 'success' : 'error'}`;
+
+        // Web Crypto
+        const hasCrypto = !!(window.crypto && window.crypto.getRandomValues);
+        document.getElementById('cryptoSupport').textContent = hasCrypto ? 'Supported' : 'Fallback';
+        document.getElementById('cryptoSupport').className = `badge ${hasCrypto ? 'success' : 'warning'}`;
+    }
+
+    // File Mode Tests
+    async function testFileMode() {
+        clearResults('fileResult');
+        try {
+            log('fileResult', 'Starting File Mode test...', 'info');
+            
+            const db = new RockdexDB({
+                storageMode: 'file',
+                storagePath: 'test-database',
+                logging: true,
+                timestamps: true
+            });
+
+            // Create table with schema
+            db.createTable('products', {
+                id: { type: 'string', required: true },
+                name: { type: 'string', required: true },
+                price: { type: 'number', required: true },
+                category: { type: 'string', required: false }
+            });
+
+            // Insert test data
+            const products = [
+                { id: 'p1', name: 'Laptop', price: 999.99, category: 'Electronics' },
+                { id: 'p2', name: 'Mouse', price: 29.99, category: 'Electronics' },
+                { id: 'p3', name: 'Desk Chair', price: 199.99, category: 'Furniture' }
+            ];
+
+            products.forEach(product => db.insert('products', product));
+            log('fileResult', `Inserted ${products.length} products`);
+
+            // Test queries
+            const electronics = db.where('category', 'Electronics').get('products');
+            log('fileResult', `Found ${electronics.length} electronics products`);
+
+            // Save to localStorage
+            await db.saveToStorage();
+            log('fileResult', 'Data saved to localStorage successfully');
+
+            // Show storage usage
+            const storageKey = 'rockdx_test-database';
+            const storageData = localStorage.getItem(storageKey);
+            log('fileResult', `Storage size: ${(storageData.length / 1024).toFixed(2)} KB`);
+
+            log('fileResult', 'File Mode test completed successfully! ✨');
+
+        } catch (error) {
+            log('fileResult', `Test failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function testEncryptedFileMode() {
+        clearResults('fileResult');
+        try {
+            log('fileResult', 'Starting Encrypted File Mode test...', 'info');
+            
+            const encryptionKey = 'super-secret-key-for-testing-12345';
+            const db = new RockdexDB({
+                storageMode: 'file',
+                storagePath: 'encrypted-database',
+                encryptionKey: encryptionKey,
+                logging: true
+            });
+
+            db.createTable('secrets');
+            
+            // Insert sensitive data
+            db.insert('secrets', {
+                id: RockdexDB.AUTO_INCREMENT,
+                username: 'admin',
+                password: 'super-secret-password',
+                apiKey: 'sk-1234567890abcdef',
+                notes: 'This data should be encrypted!'
+            });
+
+            await db.saveToStorage();
+            log('fileResult', 'Encrypted data saved');
+
+            // Show encrypted storage (should be unreadable)
+            const storageKey = 'rockdx_encrypted-database';
+            const encryptedData = localStorage.getItem(storageKey);
+            log('fileResult', `Encrypted data preview: ${encryptedData.substring(0, 100)}...`);
+
+            // Test decryption by loading with same key
+            const db2 = new RockdexDB({
+                storageMode: 'file',
+                storagePath: 'encrypted-database',
+                encryptionKey: encryptionKey
+            });
+
+            const secrets = db2.get('secrets');
+            log('fileResult', `Successfully decrypted ${secrets.length} records`);
+            log('fileResult', `Decrypted data: ${JSON.stringify(secrets[0], null, 2)}`);
+
+            log('fileResult', 'Encryption test completed successfully! 🔐');
+
+        } catch (error) {
+            log('fileResult', `Test failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function testFilePersistence() {
+        clearResults('fileResult');
+        try {
+            log('fileResult', 'Testing data persistence...', 'info');
+            
+            // Create and populate database
+            const db1 = new RockdexDB({
+                storageMode: 'file',
+                storagePath: 'persistence-test',
+                timestamps: true
+            });
+
+            db1.createTable('users');
+            db1.insert('users', { name: 'Alice', email: 'alice@example.com' });
+            db1.insert('users', { name: 'Bob', email: 'bob@example.com' });
+            
+            await db1.saveToStorage();
+            log('fileResult', 'Data saved with first database instance');
+
+            // Create new database instance to test persistence
+            const db2 = new RockdexDB({
+                storageMode: 'file',
+                storagePath: 'persistence-test'
+            });
+
+            const users = db2.get('users');
+            log('fileResult', `Loaded ${users.length} users from storage`);
+            log('fileResult', `Users: ${JSON.stringify(users, null, 2)}`);
+
+            log('fileResult', 'Persistence test completed successfully! 💾');
+
+        } catch (error) {
+            log('fileResult', `Test failed: ${error.message}`, 'error');
+        }
+    }
+
+    // Folder Mode Tests
+    async function testFolderMode() {
+        clearResults('folderResult');
+        try {
+            log('folderResult', 'Starting Folder Mode test...', 'info');
+            
+            const db = new RockdexDB({
+                storageMode: 'folder',
+                storagePath: 'test-folder-db',
+                encryptionKey: 'folder-encryption-key',
+                logging: true,
+                timestamps: true
+            });
+
+            // Create multiple tables
+            db.createTable('users');
+            db.createTable('orders');
+            db.createTable('products');
+
+            // Insert data into different tables
+            db.insert('users', { id: 1, name: 'John Doe', email: 'john@example.com' });
+            db.insert('users', { id: 2, name: 'Jane Smith', email: 'jane@example.com' });
+
+            db.insert('orders', { id: 1, userId: 1, total: 150.00, status: 'completed' });
+            db.insert('orders', { id: 2, userId: 2, total: 75.50, status: 'pending' });
+
+            db.insert('products', { id: 1, name: 'Widget A', price: 25.00 });
+            db.insert('products', { id: 2, name: 'Widget B', price: 45.00 });
+
+            log('folderResult', 'Data inserted into multiple tables');
+
+            // Save all tables to IndexedDB
+            await db.saveToStorage();
+            log('folderResult', 'All tables saved to IndexedDB');
+
+            // Test table-specific operations
+            const activeOrders = db.where('status', 'pending').get('orders');
+            log('folderResult', `Found ${activeOrders.length} pending orders`);
+
+            log('folderResult', 'Folder Mode test completed successfully! 📂');
+
+        } catch (error) {
+            log('folderResult', `Test failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function testLazyLoading() {
+        clearResults('folderResult');
+        try {
+            log('folderResult', 'Testing lazy loading functionality...', 'info');
+            
+            // Setup: Create database with multiple tables
+            const setupDb = new RockdexDB({
+                storageMode: 'folder',
+                storagePath: 'lazy-loading-test',
+                lazyLoad: false // Disable for setup
+            });
+
+            ['table1', 'table2', 'table3', 'table4', 'table5'].forEach((tableName, index) => {
+                setupDb.createTable(tableName);
+                setupDb.insert(tableName, { 
+                    id: 1, 
+                    data: `Data from ${tableName}`,
+                    timestamp: Date.now() + index 
+                });
+            });
+
+            await setupDb.saveToStorage();
+            log('folderResult', 'Setup completed: 5 tables created and saved');
+
+            // Test: Create new instance with lazy loading enabled
+            const lazyDb = new RockdexDB({
+                storageMode: 'folder',
+                storagePath: 'lazy-loading-test',
+                lazyLoad: true, // Enable lazy loading
+                logging: true
+            });
+
+            log('folderResult', 'Database initialized with lazy loading enabled');
+
+            // Access tables one by one (should trigger lazy loading)
+            const data1 = lazyDb.get('table1');
+            log('folderResult', `Table1 loaded: ${data1.length} records`);
+
+            await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+
+            const data3 = lazyDb.get('table3');
+            log('folderResult', `Table3 loaded: ${data3.length} records`);
+
+            // Check storage stats
+            const stats = lazyDb.getStorageStats();
+            log('folderResult', `Loaded tables: ${stats.loadedTables.join(', ')}`);
+            log('folderResult', `Total tables: ${Object.keys(stats.tables).length}`);
+
+            log('folderResult', 'Lazy loading test completed successfully! 🚀');
+
+        } catch (error) {
+            log('folderResult', `Test failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function testMultipleTables() {
+        clearResults('folderResult');
+        try {
+            log('folderResult', 'Testing multiple table operations...', 'info');
+            
+            const db = new RockdexDB({
+                storageMode: 'folder',
+                storagePath: 'multi-table-test',
+                softDelete: true
+            });
+
+            // Create tables with different schemas
+            db.createTable('customers', {
+                id: { type: 'number', required: true },
+                name: { type: 'string', required: true },
+                email: { type: 'string', required: true }
+            });
+
+            db.createTable('invoices', {
+                id: { type: 'number', required: true },
+                customerId: { type: 'number', required: true },
+                amount: { type: 'number', required: true }
+            });
+
+            // Insert related data
+            db.insert('customers', { id: 1, name: 'Acme Corp', email: 'contact@acme.com' });
+            db.insert('customers', { id: 2, name: 'Tech Solutions', email: 'info@techsol.com' });
+
+            db.insert('invoices', { id: 101, customerId: 1, amount: 2500.00 });
+            db.insert('invoices', { id: 102, customerId: 1, amount: 1800.00 });
+            db.insert('invoices', { id: 103, customerId: 2, amount: 950.00 });
+
+            // Test relationships
+            const customerInvoices = db.join('invoices', 'customers', 'customerId', 'id');
+            log('folderResult', `Joined data: ${customerInvoices.length} invoice-customer records`);
+
+            // Test soft delete
+            db.where('id', 102).delete('invoices');
+            log('folderResult', 'Soft deleted invoice 102');
+
+            const activeInvoices = db.get('invoices');
+            log('folderResult', `Active invoices: ${activeInvoices.length}`);
+
+            // Save all changes
+            await db.saveToStorage();
+            log('folderResult', 'All changes saved to IndexedDB');
+
+            log('folderResult', 'Multiple tables test completed successfully! 📊');
+
+        } catch (error) {
+            log('folderResult', `Test failed: ${error.message}`, 'error');
+        }
+    }
+
+    // Storage Management Tests
+    async function testStorageManagement() {
+        clearResults('managementResult');
+        try {
+            log('managementResult', 'Testing storage management operations...', 'info');
+            
+            const db = new RockdexDB({
+                storageMode: 'file',
+                storagePath: 'management-test-db',
+                softDelete: true,
+                timestamps: true
+            });
+
+            db.createTable('documents');
+
+            // Create test data
+            for (let i = 1; i <= 20; i++) {
+                db.insert('documents', {
+                    id: i,
+                    title: `Document ${i}`,
+                    content: `Content for document ${i}`,
+                    size: Math.floor(Math.random() * 1000) + 100
+                });
+            }
+
+            log('managementResult', 'Created 20 test documents');
+
+            // Soft delete some documents
+            db.where('id', 5).delete('documents');
+            db.where('id', 10).delete('documents');
+            db.where('id', 15).delete('documents');
+
+            let stats = db.getStorageStats();
+            log('managementResult', `Before compact - Total: ${stats.tables.documents.totalRecords}, Active: ${stats.tables.documents.activeRecords}`);
+
+            // Manual save
+            await db.saveToStorage();
+            log('managementResult', 'Data saved to storage');
+
+            // Compact storage
+            await db.compactStorage();
+            log('managementResult', 'Storage compacted (removed soft-deleted records)');
+
+            stats = db.getStorageStats();
+            log('managementResult', `After compact - Total: ${stats.tables.documents.totalRecords}, Active: ${stats.tables.documents.activeRecords}`);
+
+            // Test manual reload
+            await db.loadFromStorage();
+            log('managementResult', 'Data reloaded from storage');
+
+            log('managementResult', 'Storage management test completed successfully! 🔄');
+
+        } catch (error) {
+            log('managementResult', `Test failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function testStorageStats() {
+        clearResults('managementResult');
+        try {
+            log('managementResult', 'Gathering storage statistics...', 'info');
+
+            // Create a database with some data for stats
+            const db = new RockdexDB({
+                storageMode: 'folder',
+                storagePath: 'stats-test-db',
+                encryptionKey: 'stats-key',
+                lazyLoad: true,
+                cacheSize: 25
+            });
+
+            db.createTable('analytics');
+            for (let i = 1; i <= 50; i++) {
+                db.insert('analytics', {
+                    id: i,
+                    event: `Event ${i}`,
+                    data: { value: Math.random() * 100 }
+                });
+            }
+
+            const stats = db.getStorageStats();
+            
+            log('managementResult', '📊 Storage Statistics:');
+            log('managementResult', `Storage Mode: ${stats.storageMode}`);
+            log('managementResult', `Storage Path: ${stats.storagePath}`);
+            log('managementResult', `Encrypted: ${stats.encrypted ? 'Yes' : 'No'}`);
+            log('managementResult', `Lazy Loading: ${stats.lazyLoad ? 'Enabled' : 'Disabled'}`);
+            log('managementResult', `Cache Size: ${stats.cacheSize} MB`);
+            log('managementResult', `Total Records: ${stats.totalRecords}`);
+            log('managementResult', `Memory Usage: ${stats.memoryUsage} MB`);
+            log('managementResult', `Loaded Tables: ${stats.loadedTables.join(', ') || 'None'}`);
+
+            log('managementResult', '\n📋 Table Details:');
+            Object.entries(stats.tables).forEach(([tableName, tableStats]) => {
+                log('managementResult', `${tableName}: ${tableStats.totalRecords} total, ${tableStats.activeRecords} active`);
+            });
+
+        } catch (error) {
+            log('managementResult', `Test failed: ${error.message}`, 'error');
+        }
+    }
+
+    function clearAllStorage() {
+        try {
+            log('managementResult', 'Clearing all storage...', 'warning');
+            
+            // Clear localStorage
+            const keys = Object.keys(localStorage);
+            const rockdxKeys = keys.filter(key => key.startsWith('rockdx_'));
+            rockdxKeys.forEach(key => {
+                localStorage.removeItem(key);
+                log('managementResult', `Removed localStorage key: ${key}`);
+            });
+
+            if (rockdxKeys.length === 0) {
+                log('managementResult', 'No RockdxDB localStorage entries found');
+            }
+
+            // Note about IndexedDB
+            if (window.indexedDB) {
+                log('managementResult', 'IndexedDB databases need manual cleanup (browser dependent)', 'warning');
+                log('managementResult', 'You can clear them via DevTools > Application > Storage', 'info');
+            }
+
+            log('managementResult', 'Storage cleanup completed! 🧹');
+
+        } catch (error) {
+            log('managementResult', `Cleanup failed: ${error.message}`, 'error');
+        }
+    }
+
+    // Performance Tests
+    async function runPerformanceTest() {
+        clearResults('performanceResult');
+        try {
+            log('performanceResult', 'Starting performance benchmark...', 'info');
+            
+            const testDataSize = 1000;
+            const testData = [];
+            for (let i = 1; i <= testDataSize; i++) {
+                testData.push({
+                    id: i,
+                    name: `User ${i}`,
+                    email: `user${i}@example.com`,
+                    score: Math.random() * 100,
+                    category: ['A', 'B', 'C'][i % 3],
+                    active: i % 2 === 0
+                });
+            }
+
+            log('performanceResult', `Generated ${testDataSize} test records`);
+
+            // Test Memory Mode
+            let start = performance.now();
+            const memoryDb = new RockdexDB({ storageMode: 'memory' });
+            memoryDb.createTable('users');
+            testData.forEach(data => memoryDb.insert('users', data));
+            const memoryTime = performance.now() - start;
+            log('performanceResult', `Memory Mode: ${memoryTime.toFixed(2)}ms for ${testDataSize} inserts`);
+
+            // Test File Mode
+            start = performance.now();
+            const fileDb = new RockdexDB({ 
+                storageMode: 'file', 
+                storagePath: 'performance-test-file' 
+            });
+            fileDb.createTable('users');
+            testData.forEach(data => fileDb.insert('users', data));
+            await fileDb.saveToStorage();
+            const fileTime = performance.now() - start;
+            log('performanceResult', `File Mode: ${fileTime.toFixed(2)}ms for ${testDataSize} inserts + save`);
+
+            // Test Folder Mode
+            start = performance.now();
+            const folderDb = new RockdexDB({ 
+                storageMode: 'folder', 
+                storagePath: 'performance-test-folder' 
+            });
+            folderDb.createTable('users');
+            testData.forEach(data => folderDb.insert('users', data));
+            await folderDb.saveToStorage();
+            const folderTime = performance.now() - start;
+            log('performanceResult', `Folder Mode: ${folderTime.toFixed(2)}ms for ${testDataSize} inserts + save`);
+
+            // Query Performance Tests
+            start = performance.now();
+            const complexQuery = memoryDb
+                .where('score', 50, '>')
+                .where('active', true)
+                .orderBy('score', 'DESC')
+                .limit(100)
+                .get('users');
+            const queryTime = performance.now() - start;
+            log('performanceResult', `Complex Query: ${queryTime.toFixed(2)}ms (${complexQuery.length} results)`);
+
+            // Aggregation Performance
+            start = performance.now();
+            const avgScore = memoryDb.avg('users', 'score');
+            const maxScore = memoryDb.max('users', 'score');
+            const totalUsers = memoryDb.count('users');
+            const aggTime = performance.now() - start;
+            log('performanceResult', `Aggregations: ${aggTime.toFixed(2)}ms (avg: ${avgScore.toFixed(2)}, max: ${maxScore.toFixed(2)}, count: ${totalUsers})`);
+
+            // Performance Summary
+            log('performanceResult', '\n🏆 Performance Summary:', 'info');
+            log('performanceResult', `Memory: ${memoryTime.toFixed(2)}ms (baseline)`);
+            log('performanceResult', `File: ${fileTime.toFixed(2)}ms (${(fileTime/memoryTime).toFixed(1)}x slower)`);
+            log('performanceResult', `Folder: ${folderTime.toFixed(2)}ms (${(folderTime/memoryTime).toFixed(1)}x slower)`);
+
+        } catch (error) {
+            log('performanceResult', `Performance test failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function runStressTest() {
+        clearResults('performanceResult');
+        try {
+            log('performanceResult', 'Starting stress test...', 'warning');
+            
+            const db = new RockdexDB({
+                storageMode: 'memory',
+                softDelete: true,
+                timestamps: true
+            });
+
+            db.createTable('stress_test');
+
+            const iterations = 5000;
+            const batchSize = 100;
+            
+            log('performanceResult', `Running ${iterations} operations in batches of ${batchSize}...`);
+
+            let totalTime = 0;
+            for (let batch = 0; batch < iterations / batchSize; batch++) {
+                const start = performance.now();
+                
+                // Insert batch
+                for (let i = 0; i < batchSize; i++) {
+                    db.insert('stress_test', {
+                        id: batch * batchSize + i,
+                        data: `Stress test data ${batch * batchSize + i}`,
+                        timestamp: Date.now(),
+                        random: Math.random()
+                    });
+                }
+
+                // Random operations
+                if (batch > 0) {
+                    // Update some records
+                    db.where('id', batch * batchSize - 50).update('stress_test', { 
+                        updated: true, 
+                        updateTime: Date.now() 
+                    });
+
+                    // Delete some records
+                    db.where('id', batch * batchSize - 25).delete('stress_test');
+
+                    // Query records
+                    const results = db.where('random', 0.5, '>').limit(10).get('stress_test');
+                }
+
+                const batchTime = performance.now() - start;
+                totalTime += batchTime;
+
+                if (batch % 10 === 0) {
+                    log('performanceResult', `Batch ${batch + 1}/${iterations / batchSize} completed (${batchTime.toFixed(2)}ms)`);
+                }
+            }
+
+            // Final statistics
+            const finalCount = db.count('stress_test');
+            const avgTime = totalTime / (iterations / batchSize);
+            
+            log('performanceResult', `\n🎯 Stress Test Results:`);
+            log('performanceResult', `Total operations: ${iterations}`);
+            log('performanceResult', `Final record count: ${finalCount}`);
+            log('performanceResult', `Total time: ${totalTime.toFixed(2)}ms`);
+            log('performanceResult', `Average batch time: ${avgTime.toFixed(2)}ms`);
+            log('performanceResult', `Operations per second: ${(iterations / (totalTime / 1000)).toFixed(0)}`);
+
+            const stats = db.getStorageStats();
+            log('performanceResult', `Memory usage: ${stats.memoryUsage} MB`);
+
+            log('performanceResult', 'Stress test completed successfully! 💪');
+
+        } catch (error) {
+            log('performanceResult', `Stress test failed: ${error.message}`, 'error');
+        }
+    }
+
+    // Initialize page
+    window.addEventListener('load', () => {
+        checkBrowserSupport();
+        log('fileResult', '🌟 RockdxDB Cross-Platform Storage Test Ready!', 'info');
+        log('fileResult', `Environment: Browser (${navigator.userAgent.split(' ').slice(-1)[0]})`, 'info');
+        log('fileResult', 'All storage modes are now browser-compatible! 🎉', 'success');
+    });
+</script>
+
+</body>
+</html> 

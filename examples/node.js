@@ -18,7 +18,7 @@ async function testRockdexDB() {
 
         // Users table schema
         const userSchema = {
-            id: { type: 'number', required: true },
+            id: { type: 'string', required: true },
             name: { type: 'string', required: true },
             email: { type: 'string', required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
             age: { type: 'number', min: 18, max: 100 }
@@ -26,8 +26,8 @@ async function testRockdexDB() {
 
         // Posts table schema
         const postSchema = {
-            id: { type: 'number', required: true },
-            user_id: { type: 'number', required: true },
+            id: { type: 'string', required: true },
+            user_id: { type: 'string', required: true },
             title: { type: 'string', required: true },
             content: { type: 'string', required: true }
         };
@@ -55,17 +55,20 @@ async function testRockdexDB() {
             age: 25
         });
 
+        // Get the last inserted user ID
+        const lastUserId = db.getLastInsertId();
+
         // Insert posts
         db.insert('posts', {
             id: RockdexDB.AUTO_INCREMENT,
-            user_id: 1,
+            user_id: lastUserId,
             title: 'First Post',
             content: 'This is my first post!'
         });
 
         db.insert('posts', {
             id: RockdexDB.AUTO_INCREMENT,
-            user_id: 1,
+            user_id: lastUserId,
             title: 'Second Post',
             content: 'Another great post!'
         });
@@ -78,12 +81,13 @@ async function testRockdexDB() {
         console.log(db.get('users'));
 
         // Get user by ID
-        console.log('\nUser with ID 1:');
-        console.log(db.where('id', 1).getOne('users'));
+        const firstUserId = db.get('users')[0].id;
+        console.log(`\nUser with ID ${firstUserId}:`);
+        console.log(db.where('id', firstUserId).getOne('users'));
 
         // Get posts with conditions
-        console.log('\nPosts by user 1:');
-        console.log(db.where('user_id', 1).get('posts'));
+        console.log(`\nPosts by user ${firstUserId}:`);
+        console.log(db.where('user_id', firstUserId).get('posts'));
 
         // 4. Test relationships
         console.log('\n4. Testing relationships...');
@@ -95,11 +99,11 @@ async function testRockdexDB() {
 
         // 5. Test updates
         console.log('\n5. Testing updates...');
-        db.where('id', 1)
+        db.where('id', firstUserId)
             .update('users', { name: 'John Doe Updated' });
 
         console.log('\nUpdated user:');
-        console.log(db.where('id', 1).getOne('users'));
+        console.log(db.where('id', firstUserId).getOne('users'));
 
         // 6. Test searching and ordering
         console.log('\n6. Testing search and order...');

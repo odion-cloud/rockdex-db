@@ -1,5 +1,11 @@
 declare class RockdexDb {
     constructor(config?: {
+        storageMode?: 'memory' | 'file' | 'folder';
+        storagePath?: string;
+        encryptionKey?: string;
+        lazyLoad?: boolean;
+        cacheSize?: number;
+        defaultData?: { [tableName: string]: any[] };
         logging?: boolean | ((msg: string) => void);
         timestamps?: boolean;
         softDelete?: boolean;
@@ -45,7 +51,7 @@ declare class RockdexDb {
     max(tableName: string, column: string): any;
     groupBy(tableName: string, column: string): object;
     insert(tableName: string, data: object): RockdexDb;
-    getLastInsertId(): number | null;
+    getLastInsertId(): number | string | null;
     bulkInsert(tableName: string, dataArray: object[]): RockdexDb;
     update(tableName: string, data: object): RockdexDb;
     delete(tableName: string): RockdexDb;
@@ -63,6 +69,12 @@ declare class RockdexDb {
     truncate(tableName: string): RockdexDb;
     getSchema(tableName: string): object | null;
     updateSchema(tableName: string, schema: object): RockdexDb;
+    
+    // Storage management methods
+    saveToStorage(): Promise<void>;
+    loadFromStorage(): Promise<void>;
+    compactStorage(): Promise<void>;
+    getStorageStats(): object;
 }
 
 export = RockdexDb;
