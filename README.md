@@ -147,7 +147,7 @@ console.log(result.pagination); // Pagination info
 
 ## License 📄
 
-MIT © [Salar Izadi](https://github.com/salarizadi)
+MIT © [Kelly Igiogbe](https://github.com/odion-cloud)
 
 ## Contributing 🤝
 
@@ -159,4 +159,4 @@ Give a ⭐️ if this project helped you!
 
 ---
 
-Made with ❤️ by [Salar Izadi](https://github.com/salarizadi)
+Made with ❤️ by [Kelly Igiogbe](https://github.com/odion-cloud)

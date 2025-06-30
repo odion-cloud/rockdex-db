@@ -1,7 +1,7 @@
 /**
  *  Copyright (c) 2025
  *  @Version : 1.0.0
- *  @Author  : https://salarizadi.ir
+ *  @Author  : https://github.com/odion-cloud
  */
 
 ;(function (root, factory) {
