@@ -5,7 +5,12 @@
   "main": "rockdex-db.js",
   "types": "rockdex-db.d.ts",
   "scripts": {
-    "test": "node examples/node.js"
+    "test": "node examples/node.js",
+    "prepublishOnly": "npm test",
+    "release:patch": "node release-helper.js patch",
+    "release:minor": "node release-helper.js minor",
+    "release:major": "node release-helper.js major",
+    "release": "node release-helper.js"
   },
   "files": [
     "rockdex-db.js",
