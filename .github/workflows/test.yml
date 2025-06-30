@@ -1,0 +1,48 @@
+name: Test Package
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [14, 16, 18, 20]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: Check versions
+      run: |
+        echo "Node version: $(node --version)"
+        echo "NPM version: $(npm --version)"
+        
+    - name: Install dependencies
+      run: |
+        if [ -f package-lock.json ]; then
+          echo "Using npm ci with existing lock file"
+          npm ci
+        else
+          echo "Using npm install (no lock file found)"
+          npm install
+        fi
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Test basic import (CommonJS)
+      run: node -e "const RockDx = require('./index.js'); console.log('✅ CommonJS import successful');"
+      
+    - name: Test ESM import
+      run: node --input-type=module -e "import RockDx from './index.mjs'; console.log('✅ ESM import successful');" 

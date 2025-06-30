@@ -1,0 +1,11 @@
+# Tests and examples
+#examples/
+
+# Source files
+*.ts
+!rockdex-db.d.ts
+
+# Config files
+.gitignore
+.npmignore
+.gitattributes

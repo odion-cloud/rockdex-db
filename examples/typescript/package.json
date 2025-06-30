@@ -1,0 +1,8 @@
+{
+  "name": "rockdex-db-example",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/example.js"
+  }
+}

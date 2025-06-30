@@ -1,0 +1,42 @@
+{
+  "name": "@odion-cloud/rockdex-db",
+  "version": "1.0.0",
+  "description": "A lightweight, powerful in-memory database for JavaScript/TypeScript applications with support for multiple data structures, relationships, transactions, and schema validation. Perfect for both browser and Node.js environments.",
+  "main": "rockdex-db.js",
+  "types": "rockdex-db.d.ts",
+  "scripts": {
+    "test": "node examples/node.js"
+  },
+  "files": [
+    "rockdex-db.js",
+    "rockdex-db.d.ts",
+    "examples"
+  ],
+  "keywords": [
+    "rockdex-db",
+    "database",
+    "query json",
+    "javascript",
+    "typescript",
+    "lightweight",
+    "in-memory database",
+    "JavaScript/TypeScript",
+    "relationships",
+    "transactions",
+    "schema validation",
+    "browser and Node.js"
+  ],
+  "author": "salarizadi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/odion-cloud/rockdex-db.git"
+  },
+  "bugs": {
+    "url": "https://github.com/odion-cloud/rockdex-db/issues"
+  },
+  "homepage": "https://github.com/odion-cloud/rockdex-db#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
