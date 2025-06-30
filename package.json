@@ -1,6 +1,6 @@
 {
   "name": "@odion-cloud/rockdex-db",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A lightweight, powerful in-memory database for JavaScript/TypeScript applications with support for multiple data structures, relationships, transactions, and schema validation. Perfect for both browser and Node.js environments.",
   "main": "rockdex-db.js",
   "types": "rockdex-db.d.ts",
