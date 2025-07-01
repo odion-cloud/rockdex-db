@@ -49,7 +49,7 @@
                     return node.values[mid] || [];
                 } else if (node.keys[mid] < key) {
                     left = mid + 1;
-                } else {
+            } else {
                     right = mid - 1;
                 }
             }
@@ -172,10 +172,10 @@
             node.keys.splice(childIndex, 0, key);
             node.values.splice(childIndex, 0, []);
             node.children.splice(childIndex + 1, 0, rightChild);
+            }
         }
-    }
 
-    /**
+        /**
      * High-Performance Storage Engine with Chunking
      */
     class OptimizedStorage {
@@ -272,10 +272,10 @@
                 if (record[field] !== value) return false;
             }
             return true;
+            }
         }
-    }
 
-    /**
+        /**
      * Async Query Engine for non-blocking operations
      */
     class AsyncQueryEngine {
@@ -311,7 +311,7 @@
                     // Process in chunks to avoid blocking
                     const result = await this.processInChunks(queryFn, data);
                     resolve(result);
-                } catch (error) {
+            } catch (error) {
                     reject(error);
                 }
                 
@@ -348,10 +348,10 @@
                     setTimeout(resolve, 0);
                 }
             });
+            }
         }
-    }
 
-    /**
+        /**
      * Write-Ahead Logging for incremental persistence
      */
     class WriteAheadLog {
@@ -496,8 +496,8 @@
                     this._log('no_tables_configured', { 
                         message: 'No tables configured in storageTable array' 
                     });
-                    return;
-                }
+                return;
+            }
 
                 // Initialize empty tables for each configured table file
                 for (const tableFile of this._storageTable) {
@@ -552,10 +552,10 @@
 
             const tableData = {
                 [tableName]: {
-                    rows: this._tables.get(tableName) || [],
-                    schema: this._schemas.get(tableName) || null,
-                    metadata: {
-                        lastModified: new Date().toISOString(),
+                rows: this._tables.get(tableName) || [],
+                schema: this._schemas.get(tableName) || null,
+                metadata: {
+                    lastModified: new Date().toISOString(),
                         recordCount: (this._tables.get(tableName) || []).length,
                         version: '1.0.0'
                     }

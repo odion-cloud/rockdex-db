@@ -1,6 +1,6 @@
 {
   "name": "@odion-cloud/rockdex-db",
-  "version": "1.0.11",
+  "version": "1.0.10",
   "description": "🗄️ Lightweight, zero-dependency JavaScript database with manual file control. Features schema validation, transactions, triggers, and advanced queries. Works seamlessly in Node.js and browsers with optional persistence via .rdb files you create and manage yourself.",
   "main": "rockdex-db.js",
   "browser": "rockdex-db.min.js",
