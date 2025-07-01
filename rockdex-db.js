@@ -1210,7 +1210,7 @@
          */
         update(tableName, data) {
             const startTime = performance.now();
-            
+
             if (!this._tables.has(tableName)) {
                 throw new Error(`Table '${tableName}' does not exist`);
             }
@@ -1249,7 +1249,7 @@
                 
                 if (indexedResults && indexedResults.length > 0) {
                     // Update using indexed results
-                    const updatedTable = table.map(row => {
+            const updatedTable = table.map(row => {
                         const isTargetRow = indexedResults.some(indexedRow => 
                             indexedRow._rowIndex !== undefined ? 
                             table.indexOf(row) === indexedRow._rowIndex :

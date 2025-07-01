@@ -3,13 +3,13 @@
  * Showcasing optimizations that beat IndexedDB performance
  */
 
-const RockdexDB = require('../rockdx-db.js');
+const RockdexDB = require('../rockdex-db.js');
 
 async function performanceDemo() {
-    console.log('🚀 RockdxDB Performance Demo - Beating IndexedDB Speed!\n');
+    console.log('🚀 RockdexDB Performance Demo - Beating IndexedDB Speed!\n');
 
     // Initialize database with performance optimizations enabled
-    const db = new RockdxDB({
+    const db = new RockdexDB({
         storageMode: 'memory',
         performance: true,        // Enable performance optimizations
         autoIndex: true,          // Auto-create indexes
@@ -151,7 +151,7 @@ async function performanceDemo() {
     // Final performance summary
     console.log('🏆 FINAL PERFORMANCE SUMMARY:');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`✨ RockdxDB is optimized to beat IndexedDB by 50-200x!`);
+    console.log(`✨ RockdexDB is optimized to beat IndexedDB by 50-200x!`);
     console.log(`🚄 O(log n) B-tree indexes vs O(n) linear scans`);
     console.log(`🧠 Smart memory chunking prevents browser crashes`);
     console.log(`⚡ Async processing keeps UI responsive`);
@@ -168,7 +168,7 @@ async function performanceDemo() {
     console.log(`├─ Index Lookups: ${finalMetrics.indexUsage}`);
     console.log(`└─ Memory Efficiency: Optimized chunking enabled\n`);
 
-    console.log('🎉 Performance demo completed! RockdxDB is ready for production.\n');
+    console.log('🎉 Performance demo completed! RockdexDB is ready for production.\n');
 }
 
 // Run the demo

@@ -473,7 +473,7 @@
             <div class="feature-grid">
                 <div class="feature-card">
                     <h4>⭐ Star the Project</h4>
-                    <p>Give us a star on <a href="https://github.com/odion-cloud/capacitor-mediastore" target="_blank">GitHub</a> to show your support!</p>
+                    <p>Give us a star on <a href="https://github.com/odion-cloud/rockdex-db" target="_blank">GitHub</a> to show your support!</p>
                 </div>
                 <div class="feature-card">
                     <h4>🐛 Report Issues</h4>
@@ -533,13 +533,13 @@
                 </div>
             </div>
 
-            <div class="alert alert-success">
+                         <div class="alert alert-success">
                 <strong>✨ Zero Dependencies!</strong> Rockdex DB is a single file with no external dependencies. Works everywhere JavaScript runs.
-            </div>
+             </div>
 
-            <div class="alert alert-info">
+             <div class="alert alert-info">
                 <strong>🎯 Simple Philosophy:</strong> You control your data. Create files manually, handle encryption yourself, and manage storage exactly as you need.
-            </div>
+             </div>
 
             <h3>Quick Example</h3>
             <div class="code-block">
@@ -572,7 +572,7 @@ console.log('Adult users:', adults);</pre>
         <!-- Performance Tab -->
         <div id="performance" class="tab-content">
             <h2>🚄 Performance Optimizations</h2>
-            <p><strong>Rockdx DB is optimized to beat IndexedDB performance by 50-200x!</strong> Here's how we achieve lightning-fast database operations:</p>
+            <p><strong>Rockdex DB is optimized to beat IndexedDB performance by 50-200x!</strong> Here's how we achieve lightning-fast database operations:</p>
 
             <div class="alert alert-success">
                 <strong>⚡ Performance Highlights:</strong>
@@ -605,8 +605,8 @@ console.log('Adult users:', adults);</pre>
                 </div>
             </div>
 
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre>            // Enable performance optimizations
             const db = new RockdexDB({
                 storageMode: 'memory',        // Works with both 'memory' and 'file'
@@ -622,7 +622,7 @@ console.log('Adult users:', adults);</pre>
 db.createIndex('users', 'email');     // Fast email lookups
 db.createIndex('orders', 'userId');   // Fast user order queries
 db.createIndex('products', 'price');  // Fast price range searches</pre>
-            </div>
+                </div>
 
             <h3>🧠 Smart Memory Management</h3>
             <p>Intelligent chunking prevents browser crashes while maintaining optimal performance:</p>
@@ -630,7 +630,7 @@ db.createIndex('products', 'price');  // Fast price range searches</pre>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre>// Handle millions of records without memory issues
-const db = new RockdxDB({
+const db = new RockdexDB({
     chunkSize: 10000,         // 10K records per chunk
     maxMemoryChunks: 5        // Keep max 5 chunks in RAM
 });
@@ -650,8 +650,8 @@ const results = await db.whereOperator('score', '>', 800)
             <h3>📊 Performance Monitoring</h3>
             <p>Built-in metrics and benchmarking tools help you optimize your database usage:</p>
 
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre>// Get detailed performance metrics
 const metrics = db.getPerformanceMetrics();
 console.log(metrics);
@@ -670,7 +670,7 @@ await db.benchmark(100000);  // Test with 100K records
 // 🏆 BENCHMARK RESULTS:
 // ├─ Test Records: 100,000
 // ├─ Array Search: 45.67ms (2,456 results)
-// ├─ RockdxDB Search: 1.23ms (2,456 results)  
+// ├─ RockdexDB Search: 1.23ms (2,456 results)  
 // ├─ 🚄 Speed Improvement: 37.1x faster
 // ├─ 📈 Efficiency Gain: 97.3% improvement
 // └─ 🧠 Memory Optimized: 10 chunks loaded</pre>
@@ -694,8 +694,8 @@ await db.benchmark(100000);  // Test with 100K records
                 </div>
             </div>
 
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre>// Performance-optimized bulk operations
 const largeDataset = [];
 for (let i = 0; i < 100000; i++) {
@@ -730,7 +730,7 @@ const highEarners = await db.whereOperator('salary', '>', 80000)
                         <th>Operation</th>
                         <th>Traditional Array</th>
                         <th>IndexedDB</th>
-                        <th>RockdxDB Optimized</th>
+                        <th>RockdexDB Optimized</th>
                         <th>Speedup</th>
                     </tr>
                 </thead>
@@ -801,7 +801,7 @@ db.createTable('users', optimizedSchema);
             <div class="method-card">
                 <div class="method-name">Performance Configuration Options</div>
                 <div class="code-block">
-                    <pre>const db = new RockdxDB({
+                    <pre>const db = new RockdexDB({
     // Performance Optimizations
     performance: true,             // Enable all optimizations (default: true)
     autoIndex: true,               // Auto-create indexes (default: true)
@@ -964,8 +964,8 @@ yarn add @odion-cloud/rockdex-db</pre>
             <div class="step">
                 <span class="step-number">1</span>
                 <strong>Create Database Directory</strong>
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                     <pre># Create your database folder
 mkdir ./database
 
@@ -1014,7 +1014,7 @@ const db = new RockdexDB({
 
 &lt;script&gt;
 // Use in browser (memory mode recommended)
-const db = new RockdxDB({
+const db = new RockdexDB({
     storageMode: 'memory',
     logging: true
 });
@@ -1072,7 +1072,7 @@ const db = new RockdxDB({
             </table>
 
             <div class="alert alert-success">
-                <strong>✅ Ready to Go!</strong> You're now ready to start using RockdxDB! Check out the Quick Start tab for your first database operations.
+                <strong>✅ Ready to Go!</strong> You're now ready to start using RockdexDB! Check out the Quick Start tab for your first database operations.
             </div>
         </div>
 
@@ -1193,7 +1193,7 @@ db.where('email', 'john@example.com')
   });
 
 console.log('Updated:', db.getLastInsertId());</pre>
-                    </div>
+            </div>
                 </div>
                 <div class="feature-card">
                     <h4>🗑️ Deleting</h4>
@@ -1209,7 +1209,7 @@ console.log('Active users:', count);</pre>
                 </div>
                 <div class="feature-card">
                     <h4>📊 Aggregations</h4>
-                    <div class="code-block">
+            <div class="code-block">
                         <pre>// Statistics
 const avgAge = db.avg('users', 'age');
 const totalOrders = db.sum('orders', 'amount');
@@ -1235,7 +1235,7 @@ console.log('Average age:', avgAge);</pre>
         <!-- Examples Tab -->
         <div id="examples" class="tab-content">
             <h2>💡 Real-World Examples</h2>
-            
+
             <h3>🛒 E-Commerce Store</h3>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
@@ -1322,7 +1322,7 @@ console.log('Order processed successfully!');</pre>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre>// User management with roles and permissions
-const db = new RockdxDB({
+const db = new RockdexDB({
     storageMode: 'memory',
     timestamps: true,
     softDelete: true  // Enable soft deletion
@@ -1390,10 +1390,10 @@ console.log('Login result:', loginResult);</pre>
             </div>
 
             <h3>📊 Analytics Dashboard</h3>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+             <div class="code-block">
+                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre>// Analytics with aggregations and reporting
-const db = new RockdxDB({
+const db = new RockdexDB({
     storageMode: 'memory',
     performance: true,  // Enable performance optimizations
     autoIndex: true     // Auto-create indexes
@@ -1452,11 +1452,11 @@ const activeUsers = await db
     .distinct('user_events', 'userId');
 
 console.log('Active users (last 7 days):', activeUsers.length);</pre>
-            </div>
+             </div>
 
             <h3>🔐 Manual Encryption Example</h3>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+             <div class="code-block">
+                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre>const crypto = require('crypto');
 
 // Simple encryption helpers
@@ -1475,7 +1475,7 @@ function decrypt(encryptedText, password) {
 }
 
 // Database with manual encryption
-const db = new RockdxDB({ storageMode: 'memory' });
+const db = new RockdexDB({ storageMode: 'memory' });
 db.createTable('secrets');
 
 const SECRET_KEY = 'your-secret-password';
@@ -1500,13 +1500,13 @@ const secret = db.where('id', 1).getOne('secrets');
 const decryptedData = JSON.parse(decrypt(secret.data, SECRET_KEY));
 
 console.log('Decrypted sensitive data:', decryptedData);</pre>
-            </div>
+             </div>
 
             <h3>🔄 Backup & Restore</h3>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+             <div class="code-block">
+                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre>// Complete backup and restore workflow
-const db = new RockdxDB({
+const db = new RockdexDB({
     storageMode: 'file',
     storagePath: './app-data',
     storageTable: ['users.rdb', 'posts.rdb', 'settings.rdb']
@@ -1546,20 +1546,20 @@ console.log('Users restored:', db.count('users'));</pre>
             </div>
 
             <div class="alert alert-success">
-                <strong>🎉 More Examples:</strong> Visit our <a href="https://github.com/odion-cloud/rockdx-db/tree/main/examples" target="_blank">GitHub examples folder</a> for more real-world use cases and advanced patterns!
-            </div>
+                <strong>🎉 More Examples:</strong> Visit our <a href="https://github.com/odion-cloud/rockdex-db/tree/main/examples" target="_blank">GitHub examples folder</a> for more real-world use cases and advanced patterns!
+             </div>
         </div>
 
         <!-- API Reference Tab -->
         <div id="api" class="tab-content">
             <h2>📚 API Reference</h2>
-            
+
             <h3>Constructor</h3>
             <div class="method-card">
-                <div class="method-name">new RockdxDB(config)</div>
+                <div class="method-name">new RockdexDB(config)</div>
                 <p>Create a new database instance.</p>
                 <div class="code-block">
-                    <pre>const db = new RockdxDB({
+                    <pre>const db = new RockdexDB({
     storageMode: 'memory',      // 'memory' | 'file'
     storagePath: './',          // Database folder path
     storageTable: [],           // Array of .rdb files
@@ -1606,33 +1606,33 @@ console.log('Users restored:', db.count('users'));</pre>
             </div>
 
             <h3>Data Operations</h3>
-            <div class="method-card">
+                         <div class="method-card">
                 <div class="method-name">insert(tableName, data)</div>
                 <p>Insert a new record into the table.</p>
-                <div class="code-block">
+                 <div class="code-block">
                     <pre>db.insert('users', {
     name: 'John Doe',
     email: 'john@example.com'
 });</pre>
-                </div>
-            </div>
+                 </div>
+             </div>
 
-            <div class="method-card">
+             <div class="method-card">
                 <div class="method-name">get(tableName) → Promise&lt;Array&gt;</div>
                 <p>Retrieve records with applied filters.</p>
-                <div class="code-block">
+                 <div class="code-block">
                     <pre>const users = await db.get('users');
 const adults = await db.whereOperator('age', '>=', 18).get('users');</pre>
-                </div>
-            </div>
+                 </div>
+             </div>
 
-            <div class="method-card">
+             <div class="method-card">
                 <div class="method-name">getOne(tableName) → Object|null</div>
                 <p>Get the first matching record.</p>
-                <div class="code-block">
+                 <div class="code-block">
                     <pre>const user = db.where('email', 'john@example.com').getOne('users');</pre>
-                </div>
-            </div>
+                 </div>
+             </div>
 
             <div class="method-card">
                 <div class="method-name">update(tableName, data)</div>
@@ -1658,7 +1658,7 @@ const adults = await db.whereOperator('age', '>=', 18).get('users');</pre>
                 <div class="code-block">
                     <pre>db.where('status', 'active')
   .where('age', 25, 'AND')</pre>
-                </div>
+                 </div>
             </div>
 
             <div class="method-card">
@@ -1667,8 +1667,8 @@ const adults = await db.whereOperator('age', '>=', 18).get('users');</pre>
                 <div class="code-block">
                     <pre>db.whereOperator('age', '>', 18)
   .whereOperator('salary', '<=', 50000)</pre>
-                </div>
-            </div>
+                 </div>
+             </div>
 
             <div class="method-card">
                 <div class="method-name">whereIn(field, values)</div>
@@ -1887,7 +1887,7 @@ console.log('Memory usage:', stats.memoryUsage, 'MB');</pre>
             </div>
 
             <div class="alert alert-info">
-                <strong>📖 Complete Documentation:</strong> For more detailed examples and advanced usage patterns, visit our <a href="https://github.com/odion-cloud/rockdx-db" target="_blank">GitHub repository</a>.
+                <strong>📖 Complete Documentation:</strong> For more detailed examples and advanced usage patterns, visit our <a href="https://github.com/odion-cloud/rockdex-db" target="_blank">GitHub repository</a>.
             </div>
         </div>
 

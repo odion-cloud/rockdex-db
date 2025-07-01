@@ -1,16 +1,16 @@
 /**
- * Quick Performance Test for RockdxDB Optimizations
+ * Quick Performance Test for RockdexDB Optimizations
  * Verify that all new features work correctly
  */
 
-const RockdxDB = require('../rockdx-db.js');
+const RockdexDB = require('../rockdex-db.js');
 
 async function quickTest() {
-    console.log('🧪 Testing RockdxDB Performance Optimizations...\n');
+    console.log('🧪 Testing RockdexDB Performance Optimizations...\n');
 
     // Test 1: Database initialization with performance features
     console.log('1️⃣ Testing Database Initialization...');
-    const db = new RockdxDB({
+    const db = new RockdexDB({
         storageMode: 'memory',
         performance: true,
         autoIndex: true,
@@ -88,7 +88,7 @@ async function quickTest() {
     await db.benchmark(5000);
 
     console.log('🎉 All performance optimizations working correctly!\n');
-    console.log('🚀 RockdxDB is now optimized to beat IndexedDB performance:');
+    console.log('🚀 RockdexDB is now optimized to beat IndexedDB performance:');
     console.log('   • B-tree indexes for O(log n) lookups');
     console.log('   • Smart memory chunking for large datasets');
     console.log('   • Async processing to prevent UI blocking');
