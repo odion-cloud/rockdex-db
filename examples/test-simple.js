@@ -1,1 +1,1 @@
-const RockdxDB = require('../rockdx-db.js');
+const RockdexDB = require('../rockdex-db.js');

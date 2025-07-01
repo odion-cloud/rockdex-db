@@ -2,7 +2,7 @@
 const RockdexDB = require('../rockdex-db.js');
 
 async function demonstrateStorageModes() {
-    console.log('=== RockdxDB Storage Modes Demo ===\n');
+    console.log('=== RockdexDB Storage Modes Demo ===\n');
 
     // 1. Memory Mode (Default)
     console.log('1. MEMORY MODE');
@@ -23,7 +23,7 @@ async function demonstrateStorageModes() {
 
     // 2. Single File Mode
     console.log('\n2. SINGLE FILE MODE');
-    const fileDb = new RockdxDB({
+    const fileDb = new RockdexDB({
         storageMode: 'file',
         storagePath: './demo-database.rdb',
         encryptionKey: 'my-secret-key-123',
@@ -44,14 +44,14 @@ async function demonstrateStorageModes() {
 
     // Insert with secure ID generation
     fileDb.insert('users', {
-        id: RockdxDB.AUTO_INCREMENT,
+        id: RockdexDB.AUTO_INCREMENT,
         name: 'John Doe',
         email: 'john@example.com',
         age: 30
     });
 
     fileDb.insert('posts', {
-        id: RockdxDB.AUTO_INCREMENT,
+        id: RockdexDB.AUTO_INCREMENT,
         user_id: fileDb.getLastInsertId(),
         title: 'My First Post',
         content: 'Hello World!'
@@ -93,19 +93,19 @@ async function demonstrateStorageModes() {
 
     // Insert data into different tables
     const customerId = folderDb.insert('customers', {
-        id: RockdxDB.AUTO_INCREMENT,
+        id: RockdexDB.AUTO_INCREMENT,
         name: 'Jane Smith',
         email: 'jane@example.com'
     }).getLastInsertId();
 
     const productId = folderDb.insert('products', {
-        id: RockdxDB.AUTO_INCREMENT,
+        id: RockdexDB.AUTO_INCREMENT,
         name: 'Laptop',
         price: 999.99
     }).getLastInsertId();
 
     folderDb.insert('orders', {
-        id: RockdxDB.AUTO_INCREMENT,
+        id: RockdexDB.AUTO_INCREMENT,
         customer_id: customerId,
         product_id: productId,
         total: 999.99
@@ -121,13 +121,13 @@ async function demonstrateStorageModes() {
     try {
         folderDb.transaction((tx) => {
             tx.insert('customers', {
-                id: RockdxDB.AUTO_INCREMENT,
+                id: RockdexDB.AUTO_INCREMENT,
                 name: 'Transaction Test',
                 email: 'test@example.com'
             });
 
             tx.insert('orders', {
-                id: RockdxDB.AUTO_INCREMENT,
+                id: RockdexDB.AUTO_INCREMENT,
                 customer_id: tx.getLastInsertId(),
                 total: 150.00
             });
@@ -168,7 +168,7 @@ async function demonstrateStorageModes() {
         // Insert 1000 records
         for (let i = 0; i < 1000; i++) {
             db.insert('performance_test', {
-                id: RockdxDB.AUTO_INCREMENT,
+                id: RockdexDB.AUTO_INCREMENT,
                 name: `User ${i}`,
                 value: Math.random() * 1000
             });

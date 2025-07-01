@@ -42,7 +42,7 @@ jobs:
       run: npm test
       
     - name: Test basic import (CommonJS)
-      run: node -e "const RockDx = require('./index.js'); console.log('✅ CommonJS import successful');"
+      run: node -e "const RockdexDB = require('./index.js'); console.log('✅ CommonJS import successful');"
       
     - name: Test ESM import
-      run: node --input-type=module -e "import RockDx from './index.mjs'; console.log('✅ ESM import successful');" 
+      run: node --input-type=module -e "import RockdexDB from './index.mjs'; console.log('✅ ESM import successful');" 

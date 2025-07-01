@@ -1,328 +1,454 @@
-# RockdexDB 💾
+# RockdexDB - Lightweight Cross-Platform Database
 
-![License](https://img.shields.io/npm/l/@odion-cloud/rockdex-db)
-![Version](https://img.shields.io/npm/v/@odion-cloud/rockdex-db)
-![Downloads](https://img.shields.io/npm/dt/@odion-cloud/rockdex-db)
+[![npm version](https://badge.fury.io/js/@odion-cloud%2Frockdex-db.svg)](https://badge.fury.io/js/@odion-cloud%2Frockdex-db)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/odion-cloud/rockdexdb.svg?style=social&label=Star)](https://github.com/odion-cloud/rockdexdb)
 
-A lightweight, powerful in-memory database for JavaScript/TypeScript applications with support for multiple data structures, relationships, transactions, and schema validation. Perfect for both browser and Node.js environments.
+RockdexDB is a lightweight, feature-rich JavaScript database that works seamlessly in both **Node.js** and **Browser** environments. It supports in-memory operations and manual file management with a simple export/import system.
 
-## Features ✨
+## 🔗 Quick Links
 
-### Storage Modes 💾
-- 🧠 **Memory Mode** - Lightning-fast in-memory operations
-- 📁 **File Mode** - Single file persistent storage (.rdb format)
-- 📂 **Folder Mode** - Distributed storage (each table = separate file)
+- 📖 **[Full Documentation](https://odion-cloud.github.io/rockdexdb/)** - Complete guides and examples
+- 📦 **[npm Package](https://www.npmjs.com/package/@odion-cloud/rockdex-db)** - Install with `npm install @odion-cloud/rockdex-db`
+- ⭐ **[GitHub Repository](https://github.com/odion-cloud/rockdexdb)** - Source code and issues
+- 💬 **[Support & Discussion](https://github.com/sponsors/odion-cloud)** - Get help and support development
 
-### Core Features 🚀
-- 🏃‍♂️ Lightweight and blazing fast operations
-- 📊 Table-based data structure with relationships
-- 🔒 Schema validation and type checking
-- 🕒 Automatic timestamps
-- 🗑️ Soft delete capability
-- 📝 Transaction support with rollback
-- 🔍 Advanced querying with multiple conditions
-- 📈 Indexing for faster searches
-- 🔄 Import/Export JSON functionality
-- 📱 Browser and Node.js compatibility
-- 🧮 Aggregation functions (count, avg, sum, min, max)
-- 📄 Pagination support
-- 🎯 Custom raw queries
+## ✨ Key Features
 
-### Advanced Features 🔥
-- 🔐 **AES-256 Encryption** - Secure data storage with encryption keys (Node.js & Browser)
-- 🚀 **Lazy Loading** - Load collections on demand (folder mode)
-- 💰 **Memory Cache** - Configurable cache size for performance
-- 🔑 **Secure ID Generation** - SHA-256 based unique IDs with crypto
-- ⚛️ **Atomic Operations** - All writes are atomic with rollback support
-- 📊 **Storage Analytics** - Detailed storage statistics and monitoring
-- 🎯 **Default Data** - Initialize with predefined data structures
-- 🌐 **Cross-Platform** - Works in Node.js, modern browsers, and legacy browsers
-- 📁 **File System Access** - Real file operations in browsers (when supported)
-- 🔄 **Automatic Fallbacks** - Graceful degradation for unsupported environments
+- 🚀 **Cross-Platform**: Works in Node.js and browsers without dependencies
+- 💾 **Dual Storage Modes**: Memory-based and manual file management  
+- 📁 **Manual File Control**: You create and manage .rdb files manually
+- 🔒 **User-Controlled Security**: Handle encryption manually as needed
+- ⚡ **High Performance**: In-memory operations with optional persistence
+- 🔍 **Advanced Queries**: WHERE, ORDER BY, LIMIT, JOIN, and more
+- 📊 **Schema Validation**: Optional table schemas with type checking
+- 🔄 **Transactions**: Atomic operations with rollback support
+- 📈 **Statistics**: Built-in analytics and aggregation functions
+- 🎯 **Triggers**: Event-driven database operations
+- 🛠️ **Zero Dependencies**: Single file, no external libraries required
 
-## Installation 📦
+## 🚀 Quick Start
 
-### NPM
+### Installation
+
 ```bash
 npm install @odion-cloud/rockdex-db
 ```
 
-### Yarn
-```bash
-yarn add @odion-cloud/rockdex-db
+### Basic Usage
+
+```javascript
+const RockdexDB = require('@odion-cloud/rockdex-db');
+
+// Create database instance
+const db = new RockdexDB({
+    storageMode: 'memory',
+    logging: true
+});
+
+// Create table and insert data
+db.createTable('users');
+db.insert('users', {
+    name: 'John Doe',
+    email: 'john@example.com',
+    age: 30
+});
+
+// Query with advanced conditions
+const adults = db
+    .whereOperator('age', '>=', 18)
+    .orderBy('name')
+    .get('users');
+
+console.log('Adult users:', adults);
 ```
 
-### Browser
-```html
-<script src="https://unpkg.com/@odion-cloud/rockdex-db"></script>
-```
-
-### Browser Compatibility 🌐
-RockdexDB now works seamlessly in both Node.js and browser environments:
-
-- **✅ Node.js**: Full file system access with fs, path, and crypto modules
-- **✅ Modern Browsers**: File System Access API for real file/folder operations  
-- **✅ Legacy Browsers**: Download/upload fallback for file operations
-- **✅ Cross-Platform**: Same API works everywhere with automatic environment detection
-
-## Quick Start 🚀
+## 🎯 Storage Modes
 
 ### Memory Mode (Default)
-```javascript
-// Initialize RockdxDB with memory storage
-const db = new RockdexDB({
-    storageMode: 'memory', // In-memory only
-    logging: true,
-    timestamps: true,
-    softDelete: true
-});
-```
+Perfect for temporary data, caching, and development:
 
-### File Storage Mode  
 ```javascript
-// Single file persistent storage
 const db = new RockdexDB({
-    storageMode: 'file',
-    storagePath: './my-database.rdb',
-    encryptionKey: 'your-secret-key', // Optional AES-256 encryption
+    storageMode: 'memory',
     logging: true,
     timestamps: true
 });
+
+// Create tables and add data
+db.createTable('users');
+db.insert('users', {
+    name: 'Alice Smith',
+    email: 'alice@example.com'
+});
 ```
 
-### Folder Storage Mode
+### File Mode with Manual Tables
+For persistent storage with complete control:
+
 ```javascript
-// Distributed file storage (each table = separate file)
+// 1. Create your database structure manually
+mkdir ./database
+touch ./database/users.rdb
+touch ./database/posts.rdb  
+touch ./database/orders.rdb
+
+// 2. Configure RockdexDB
 const db = new RockdexDB({
-    storageMode: 'folder',
-    storagePath: './my-database-folder',
-    lazyLoad: true, // Load tables on demand
-    cacheSize: 50, // Memory cache size in MB
-    encryptionKey: 'your-secret-key',
-    logging: true,
-    timestamps: true,
-    defaultData: {
-        users: [{ id: 1, name: 'Admin', email: 'admin@example.com' }]
-    }
+    storageMode: 'file',
+    storagePath: './database',
+    storageTable: ['users.rdb', 'posts.rdb', 'orders.rdb']
 });
 
-// Create a table with schema
+await db.ready(); // Wait for initialization
+```
+
+## 📚 Core Features
+
+### Schema Validation
+
+```javascript
 const userSchema = {
-    id: { type: 'string', required: true },
     name: { type: 'string', required: true },
-    email: { type: 'string', required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-    age: { type: 'number', min: 18, max: 100 }
+    email: { type: 'string', required: true, pattern: /@/ },
+    age: { type: 'number', min: 0, max: 120 },
+    role: { type: 'string', required: false }
 };
 
 db.createTable('users', userSchema);
 
-// Insert data with secure ID generation
-db.insert('users', {
-    id: RockdexDB.AUTO_INCREMENT, // Generates secure SHA-256 based ID
-    name: 'John Doe',
-    email: 'john@example.com',
-    age: 20
+// This will validate against schema
+db.insert('users', { 
+    name: 'John', 
+    email: 'john@example.com', 
+    age: 30 
 });
-
-// Query data
-const users = db.where('name', 'John Doe').get('users');
-```
-
-## Advanced Usage 🔥
-
-### Relationships
-```javascript
-// Define relationships between tables
-db.setRelation('posts', 'users', 'hasOne', 'user_id');
-
-// Join tables
-const postsWithUsers = db.join('posts', 'users', 'user_id', 'id');
-```
-
-### Transactions
-```javascript
-db.transaction((tx) => {
-    tx.insert('users', { /* user data */ });
-    tx.insert('posts', { /* post data */ });
-    // Will rollback if any operation fails
-});
-```
-
-### Schema Validation
-```javascript
-const schema = {
-    title: { type: 'string', required: true },
-    views: { type: 'number', min: 0 },
-    status: { type: 'string', pattern: /^(draft|published)$/ }
-};
-
-db.createTable('posts', schema);
 ```
 
 ### Advanced Queries
+
 ```javascript
-db.whereOperator('age', '>', 18)
-  .whereLike('name', '%John%')
-  .whereIn('status', ['active', 'pending'])
-  .orderBy('created_at', 'DESC')
-  .limit(10)
-  .get('users');
+// Complex WHERE conditions
+const results = db
+    .where('age', 25)
+    .whereOperator('salary', '>', 50000)
+    .whereIn('department', ['IT', 'HR'])
+    .whereLike('name', 'John%')
+    .orderBy('salary', 'DESC')
+    .limit(10, 0)
+    .get('employees');
+
+// Aggregations
+const avgSalary = db.avg('employees', 'salary');
+const totalSales = db.sum('orders', 'amount');
+const maxPrice = db.max('products', 'price');
+
+// Grouping
+const usersByDepartment = db.groupBy('employees', 'department');
 ```
 
-### Pagination
+### Transactions
+
 ```javascript
-const result = db.paginate('users', 1, 10);
-console.log(result.data); // Current page data
-console.log(result.pagination); // Pagination info
+db.transaction(db => {
+    db.insert('users', userData);
+    db.insert('profiles', profileData);
+    // If any operation fails, all changes are rolled back
+});
 ```
 
-### Storage Management
+### Triggers
+
 ```javascript
-// Storage statistics
+db.createTrigger('users', 'beforeInsert', ({ operation, NEW }) => {
+    NEW.created_at = new Date().toISOString();
+    return true; // Allow operation
+});
+
+db.createTrigger('users', 'afterUpdate', ({ operation, OLD, NEW }) => {
+    console.log(`User ${OLD.name} updated to ${NEW.name}`);
+});
+```
+
+## 🔄 Export/Import Workflow
+
+### Export Data
+```javascript
+// Browser: Downloads file automatically
+db.exportTable('users');
+
+// Node.js: Get export string to save manually
+const userData = db.getTableExport('users');
+// fs.writeFileSync('./database/users.rdb', userData);
+```
+
+### Import Data
+```javascript
+// Load data from .rdb file content
+const fileContent = fs.readFileSync('./database/users.rdb', 'utf8');
+db.importTable('users', fileContent);
+```
+
+## 🌐 Browser Usage
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="rockdex-db.min.js"></script>
+</head>
+<body>
+    <script>
+        const db = new RockdexDB({
+            storageMode: 'file',
+            storageTable: ['users.rdb', 'posts.rdb']
+        });
+        
+        db.createTable('users');
+        db.insert('users', { name: 'Browser User' });
+        
+        // Export table - automatically downloads .rdb file
+        db.exportTable('users');
+    </script>
+</body>
+</html>
+```
+
+## 🔒 Manual Encryption Example
+
+Users handle encryption before storing sensitive data:
+
+```javascript
+// Simple encryption functions (use proper crypto libraries in production)
+function encrypt(data, key) {
+    return Buffer.from(JSON.stringify(data)).toString('base64');
+}
+
+function decrypt(encryptedData, key) {
+    return JSON.parse(Buffer.from(encryptedData, 'base64').toString('utf8'));
+}
+
+// Encrypt before storing
+const sensitiveData = { password: 'secret123', apiKey: 'key-456' };
+db.insert('secrets', {
+    id: 1,
+    data: encrypt(sensitiveData, 'my-key'),
+    type: 'credentials'
+});
+
+// Decrypt when retrieving
+const record = db.where('id', 1).getOne('secrets');
+const decryptedData = decrypt(record.data, 'my-key');
+```
+
+## 🛠️ Configuration Options
+
+```javascript
+const db = new RockdexDB({
+    storageMode: 'file',           // 'memory' or 'file'
+    storagePath: './data',         // Database folder path
+    storageTable: [                // Manual table files
+        'users.rdb',
+        'posts.rdb',
+        'orders.rdb'
+    ],
+    logging: true,                 // Enable operation logging
+    timestamps: true,              // Auto-add created_at/updated_at
+    softDelete: false,             // Use soft deletes (deleted_at)
+    defaultData: {                 // Initial data for memory mode
+        users: [{ name: 'Admin', role: 'admin' }]
+    }
+});
+```
+
+## 📊 Storage Statistics
+
+```javascript
 const stats = db.getStorageStats();
 console.log(stats);
-/*
-{
-  storageMode: 'folder',
-  encrypted: true,
-  lazyLoad: true,
-  tables: { users: { totalRecords: 100, activeRecords: 95, deletedRecords: 5 } },
-  totalRecords: 95,
-  memoryUsage: 2.34 // MB
-}
-*/
-
-// Manual save (useful for batch operations)
-await db.saveToStorage();
-
-// Compact storage (remove soft-deleted records)
-await db.compactStorage();
-
-// Manual load
-await db.loadFromStorage();
+// {
+//   storageMode: 'file',
+//   storagePath: './database',
+//   storageTable: ['users.rdb', 'posts.rdb'],
+//   tables: {
+//     users: { totalRecords: 10, activeRecords: 8, deletedRecords: 2 }
+//   },
+//   totalRecords: 15,
+//   memoryUsage: 2.1 // MB
+// }
 ```
 
-### Encryption
+## 🌟 Real-World Examples
+
+### E-commerce Product Catalog
+
 ```javascript
-const db = new RockdxDB({
+const db = new RockdexDB({ storageMode: 'memory' });
+
+// Create products table with schema
+const productSchema = {
+    name: { type: 'string', required: true },
+    price: { type: 'number', required: true, min: 0 },
+    category: { type: 'string', required: true },
+    inStock: { type: 'boolean', required: false }
+};
+
+db.createTable('products', productSchema);
+
+// Add sample products
+db.bulkInsert('products', [
+    { name: 'Laptop Pro', price: 1299, category: 'Electronics', inStock: true },
+    { name: 'Coffee Mug', price: 15, category: 'Kitchen', inStock: true },
+    { name: 'Running Shoes', price: 89, category: 'Sports', inStock: false }
+]);
+
+// Find affordable products in stock
+const affordableProducts = db
+    .whereOperator('price', '<', 100)
+    .where('inStock', true)
+    .orderBy('price', 'ASC')
+    .get('products');
+```
+
+### User Management with Sessions
+
+```javascript
+const db = new RockdexDB({ 
     storageMode: 'file',
-    storagePath: './encrypted-db.rdb',
-    encryptionKey: 'your-256-bit-secret-key',
-    logging: true
+    storagePath: './userdata',
+    storageTable: ['users.rdb', 'sessions.rdb'],
+    timestamps: true
 });
 
-// All data is automatically encrypted/decrypted
-db.insert('secrets', { password: 'super-secret-data' });
-```
-
-### Browser Usage 🌐
-
-#### Modern Browsers (File System Access API)
-```javascript
-// Works in Chrome 86+, Edge 86+, and other Chromium-based browsers
-const db = new RockdxDB({
-    storageMode: 'folder',
-    storagePath: 'my-app-data', // Folder name for the user to select
-    encryptionKey: 'optional-encryption-key',
-    logging: true
-});
-
-// Wait for storage to be ready (user will be prompted to select/create folder)
 await db.ready();
 
-// All operations work the same as Node.js
+// Create tables
 db.createTable('users');
-db.insert('users', { name: 'Browser User', email: 'user@browser.com' });
+db.createTable('sessions');
 
-// Manual save/load operations
-await db.saveToStorage(); // Saves to selected folder/file
-await db.loadFromStorage(); // Loads from selected folder/file
-```
-
-#### Legacy Browser Support
-```javascript
-// For browsers without File System Access API
-const db = new RockdxDB({
-    storageMode: 'file',
-    storagePath: 'my-database.rdb',
-    logging: true
+// Add trigger for automatic session creation
+db.createTrigger('users', 'afterInsert', ({ NEW }) => {
+    db.insert('sessions', {
+        userId: NEW.id,
+        token: 'session_' + Math.random().toString(36),
+        expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+    });
+    return true;
 });
 
-// Operations work normally
-db.createTable('users');
-db.insert('users', { name: 'User', email: 'user@example.com' });
-
-// Save triggers file download
-await db.saveToStorage(); // Downloads 'my-database.rdb' file
-
-// Load requires file input (handled automatically)
-await db.loadFromStorage(); // Prompts user to select file
-```
-
-#### Web Worker Support
-```javascript
-// RockdxDB works in Web Workers for background processing
-// In your main thread:
-const worker = new Worker('database-worker.js');
-
-// In database-worker.js:
-importScripts('https://unpkg.com/@odion-cloud/rockdx-db');
-
-const db = new RockdxDB({
-    storageMode: 'memory', // Memory mode works great in workers
-    logging: true
+// Register new user (automatically creates session)
+db.insert('users', {
+    username: 'john_doe',
+    email: 'john@example.com',
+    role: 'user'
 });
-
-// Perform heavy database operations without blocking UI
 ```
 
-## API Reference 📚
+## 📖 API Documentation
 
 ### Core Methods
-- `ready()` - Wait for storage initialization (important for browser file operations)
+
 - `createTable(tableName, schema?)` - Create a new table
-- `setTable(tableName, data, schema?)` - Set table data with optional schema
-- `insert(tableName, data)` - Insert a single record
-- `update(tableName, data)` - Update records matching conditions
-- `delete(tableName)` - Delete records matching conditions
-- `get(tableName)` - Get all matching records
-- `getOne(tableName)` - Get first matching record
-
-### Query Methods
-- `where(field, value, operator)` - Add WHERE condition
-- `whereOperator(field, operator, value)` - Add WHERE condition with operator
-- `whereLike(field, pattern)` - Add LIKE condition
-- `whereIn(field, values)` - Add WHERE IN condition
+- `insert(tableName, data)` - Insert a record
+- `get(tableName)` - Get all records (after applying conditions)
+- `where(field, value, operator?)` - Add WHERE condition
+- `whereOperator(field, operator, value)` - WHERE with custom operator
 - `orderBy(column, direction)` - Sort results
-- `limit(limit, offset)` - Limit results
-- `paginate(tableName, page, perPage)` - Get paginated results
+- `limit(count, offset?)` - Limit and pagination
+- `update(tableName, data)` - Update matching records
+- `delete(tableName)` - Delete matching records
 
-### Utilities
-- `backup()` - Create database backup
-- `restore(backup)` - Restore from backup
-- `toJSON(tableName)` - Export table to JSON
-- `fromJSON(tableName, jsonData)` - Import from JSON
-- `getStats()` - Get database statistics
-- `truncate(tableName)` - Clear table data
+### Query Operators
 
-### Storage Management
-- `saveToStorage()` - Manually save all data to storage
-- `loadFromStorage()` - Manually load all data from storage
-- `compactStorage()` - Remove soft-deleted records and optimize storage
-- `getStorageStats()` - Get detailed storage statistics and usage
+- `=`, `>`, `<`, `>=`, `<=`, `!=` - Comparison operators
+- `LIKE` - Pattern matching with `%` wildcard
+- `IN` - Check if value is in array
 
-## License 📄
+### Aggregation Functions
 
-MIT © [Kelly Igiogbe](https://github.com/odion-cloud)
+- `count(tableName)` - Count records
+- `sum(tableName, column)` - Sum numeric column
+- `avg(tableName, column)` - Average of numeric column
+- `min/max(tableName, column)` - Minimum/maximum value
+- `groupBy(tableName, column)` - Group records by column
 
-## Contributing 🤝
+## 🎨 Why This Approach?
 
-Contributions, issues, and feature requests are welcome! Feel free to check [issues page](https://github.com/odion-cloud/rockdex-db/issues).
+The clean, manual approach offers several advantages:
 
-## Support 🌟
+✅ **Simplicity**: No complex dependencies or file operations  
+✅ **Cross-Platform**: Works identically in browsers and Node.js  
+✅ **Control**: You decide where and how to store your data  
+✅ **Lightweight**: Single file, no external dependencies  
+✅ **Security**: Handle encryption exactly as you need  
+✅ **Portable**: Easy to backup, move, or share database files  
+✅ **Version Control**: Database files can be tracked in git  
 
-Give a ⭐️ if this project helped you!
+## 🏗️ Production Ready
+
+RockdexDB is designed for production use with:
+
+- ✅ Clean, consistent API
+- ✅ Comprehensive error handling  
+- ✅ Memory-efficient operations
+- ✅ Atomic transactions
+- ✅ Schema validation
+- ✅ Event triggers
+- ✅ Cross-platform compatibility
+
+## 📄 File Structure
+
+After setup, your project structure will look like:
+
+```
+your-project/
+├── node_modules/
+├── database/           # Your database folder
+│   ├── users.rdb      # Table files (you create these)
+│   ├── posts.rdb
+│   └── orders.rdb
+├── app.js             # Your application
+└── package.json
+```
+
+## 🤝 Support & Contributing
+
+### 💝 Support This Project
+
+Help improve RockdexDB and build better tools for the community!
+
+- 🌟 **GitHub Sponsors**: [github.com/sponsors/odion-cloud](https://github.com/sponsors/odion-cloud)
+- 🪙 **Cryptocurrency**: Multiple networks supported (BTC, USDT on Ethereum, BNB Chain, TRON, Solana, TON)
+
+Your support helps me:
+- Upgrade development hardware and workspace
+- Dedicate more time to open source projects  
+- Add new features and improve documentation
+- Provide better community support
+
+### 🤝 Other Ways to Help
+
+- ⭐ **Star the project** on [GitHub](https://github.com/odion-cloud/rockdexdb)
+- 🐛 **Report issues** and suggest features
+- 📖 **Improve documentation** and examples
+- 💬 **Spread the word** to other developers
+
+### 🏗️ Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+MIT License - feel free to use RockdexDB in your projects!
 
 ---
 
-Made with ❤️ by [Kelly Igiogbe](https://github.com/odion-cloud)
+**RockdexDB**: Clean, powerful, production-ready database for modern JavaScript applications.
+
+Built with ❤️ by [Odion Cloud](https://github.com/odion-cloud)

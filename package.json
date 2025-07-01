@@ -1,47 +1,58 @@
 {
   "name": "@odion-cloud/rockdex-db",
-  "version": "1.0.9",
-  "description": "A lightweight, powerful in-memory database for JavaScript/TypeScript applications with support for multiple data structures, relationships, transactions, and schema validation. Perfect for both browser and Node.js environments.",
+  "version": "1.0.0",
+  "description": "Lightweight, cross-platform JavaScript database with manual file management. Works in Node.js and browsers without dependencies.",
   "main": "rockdex-db.js",
+  "browser": "rockdex-db.min.js",
   "types": "rockdex-db.d.ts",
-  "scripts": {
-    "test": "node examples/node.js",
-    "test:storage": "node examples/storage-modes.js",
-    "prepublishOnly": "npm test",
-    "release:patch": "node release-helper.js patch",
-    "release:minor": "node release-helper.js minor",
-    "release:major": "node release-helper.js major",
-    "release": "node release-helper.js"
-  },
   "files": [
     "rockdex-db.js",
+    "rockdex-db.min.js",
     "rockdex-db.d.ts",
-    "examples"
+    "README.md",
+    "LICENSE"
   ],
+  "scripts": {
+    "test": "node examples/simplified-usage.js",
+    "example": "node examples/simplified-usage.js",
+    "build": "node -e \"const fs = require('fs'); const code = fs.readFileSync('rockdex-db.js', 'utf8'); const minified = code.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/\\/\\/.*$/gm, '').replace(/\\s+/g, ' ').replace(/;\\s+/g, ';').replace(/\\{\\s+/g, '{').replace(/\\s+\\}/g, '}').trim(); fs.writeFileSync('rockdex-db.min.js', minified);\""
+  },
   "keywords": [
-    "rockdex-db",
     "database",
-    "query json",
-    "javascript",
-    "typescript",
     "lightweight",
-    "in-memory database",
-    "JavaScript/TypeScript",
-    "relationships",
-    "transactions",
-    "schema validation",
-    "browser and Node.js"
+    "cross-platform",
+    "javascript",
+    "browser",
+    "nodejs",
+    "json",
+    "storage",
+    "query",
+    "schema",
+    "transaction",
+    "trigger",
+    "manual",
+    "file-management",
+    "no-dependencies"
   ],
-  "author": "Kelly Igiogbe",
+  "author": {
+    "name": "Kelly Igiogbe", 
+    "email": "igiogbekelly@gmail.com",
+    "url": "https://github.com/odion-cloud"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/odion-cloud/rockdex-db.git"
+    "url": "git+https://github.com/odion-cloud/rockdexdb.git"
   },
   "bugs": {
-    "url": "https://github.com/odion-cloud/rockdex-db/issues"
+    "url": "https://github.com/odion-cloud/rockdexdb/issues"
   },
-  "homepage": "https://github.com/odion-cloud/rockdex-db#readme",
+  "homepage": "https://github.com/odion-cloud/rockdexdb#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {},
   "publishConfig": {
     "access": "public"
   }
