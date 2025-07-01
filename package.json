@@ -15,7 +15,11 @@
   "scripts": {
     "test": "node examples/simplified-usage.js",
     "example": "node examples/simplified-usage.js",
-    "build": "node -e \"const fs = require('fs'); const code = fs.readFileSync('rockdex-db.js', 'utf8'); const minified = code.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/\\/\\/.*$/gm, '').replace(/\\s+/g, ' ').replace(/;\\s+/g, ';').replace(/\\{\\s+/g, '{').replace(/\\s+\\}/g, '}').trim(); fs.writeFileSync('rockdex-db.min.js', minified);\""
+    "build": "node -e \"const fs = require('fs'); const code = fs.readFileSync('rockdex-db.js', 'utf8'); const minified = code.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/\\/\\/.*$/gm, '').replace(/\\s+/g, ' ').replace(/;\\s+/g, ';').replace(/\\{\\s+/g, '{').replace(/\\s+\\}/g, '}').trim(); fs.writeFileSync('rockdex-db.min.js', minified);\"",
+    "release:patch": "node release-helper.js patch",
+    "release:minor": "node release-helper.js minor",
+    "release:major": "node release-helper.js major",
+    "release": "node release-helper.js"
   },
   "keywords": [
     "database",
