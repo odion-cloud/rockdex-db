@@ -1,6 +1,6 @@
 {
   "name": "@odion-cloud/rockdex-db",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Lightweight, cross-platform JavaScript database with manual file management. Works in Node.js and browsers without dependencies.",
   "main": "rockdex-db.js",
   "browser": "rockdex-db.min.js",
@@ -39,7 +39,7 @@
     "no-dependencies"
   ],
   "author": {
-    "name": "Kelly Igiogbe", 
+    "name": "Kelly Igiogbe",
     "email": "igiogbekelly@gmail.com",
     "url": "https://github.com/odion-cloud"
   },
