@@ -27,10 +27,10 @@
     if (typeof module !== 'undefined' && module.exports) {
         // Node.js environment
         try {
-            FileManager = require('./FileManager.js');
-            FolderManager = require('./FolderManager.js');
-            SecurityManager = require('./SecurityManager.js');
-            PathManager = require('./PathManager.js');
+            FileManager = import('./FileManager.js');
+            FolderManager = import('./FolderManager.js');
+            SecurityManager = import('./SecurityManager.js');
+            PathManager =  import('./PathManager.js');
         } catch (error) {
             console.warn('Manager classes not found. Make sure FileManager.js, FolderManager.js, SecurityManager.js, and PathManager.js are in the same directory.');
         }
