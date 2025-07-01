@@ -20,6 +20,30 @@
 }(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
+    // Import manager classes
+    let FileManager, FolderManager, SecurityManager, PathManager;
+    
+    // Initialize managers based on environment
+    if (typeof module !== 'undefined' && module.exports) {
+        // Node.js environment
+        try {
+            FileManager = require('./FileManager.js');
+            FolderManager = require('./FolderManager.js');
+            SecurityManager = require('./SecurityManager.js');
+            PathManager = require('./PathManager.js');
+        } catch (error) {
+            console.warn('Manager classes not found. Make sure FileManager.js, FolderManager.js, SecurityManager.js, and PathManager.js are in the same directory.');
+        }
+    } else if (typeof window !== 'undefined') {
+        // Browser environment
+        FileManager = window.FileManager;
+        FolderManager = window.FolderManager;
+        SecurityManager = window.SecurityManager;
+        PathManager = window.PathManager;
+    }
+
+
+
     class RockdexDB {
 
         constructor (config = {}) {
@@ -47,6 +71,15 @@
             this._hasFileSystemAccess = this._isBrowser && 'showDirectoryPicker' in window;
             this._browserFallback = false;
             
+            // Initialize manager instances
+            this._fileManager = FileManager ? new FileManager() : null;
+            this._folderManager = FolderManager ? new FolderManager() : null;
+            this._securityManager = SecurityManager ? new SecurityManager() : null;
+            this._pathManager = PathManager ? new PathManager() : null;
+            
+            // Initialize managers asynchronously
+            this._initializeManagers();
+            
             // Query state
             this._whereConditions = [];
             this._operator = 'AND';
@@ -64,6 +97,9 @@
 
             // Initialize storage (async)
             this._storageReady = this._initializeStorage();
+            
+            // Initialize path manager with database context
+            this._initializePathManager();
         }
 
         /**
@@ -73,6 +109,54 @@
         async ready() {
             await this._storageReady;
             return this;
+        }
+
+        /**
+         * Initialize all manager instances
+         * @private
+         */
+        async _initializeManagers() {
+            try {
+                if (this._fileManager) {
+                    await this._fileManager.init();
+                }
+                if (this._folderManager) {
+                    await this._folderManager.init();
+                }
+                if (this._securityManager) {
+                    await this._securityManager.init();
+                }
+                if (this._pathManager) {
+                    await this._pathManager.init();
+                }
+            } catch (error) {
+                this._log('manager_init_error', { error: error.message });
+            }
+        }
+
+        /**
+         * Initialize path manager with database-specific settings
+         * @private
+         */
+        async _initializePathManager() {
+            if (!this._pathManager) return;
+            
+            await this._pathManager.init();
+            
+            // Set up RockdexDB-specific aliases
+            this._pathManager.setAlias('@db', this._storagePath);
+            this._pathManager.setAlias('@data', this._storagePath);
+            this._pathManager.setAlias('@backup', this._storagePath + '_backups');
+            this._pathManager.setAlias('@temp', this._storagePath + '_temp');
+            this._pathManager.setAlias('@cache', this._storagePath + '_cache');
+            this._pathManager.setAlias('@logs', this._storagePath + '_logs');
+            this._pathManager.setAlias('@config', this._storagePath + '_config');
+            
+            // Set up database-specific base paths
+            this._pathManager.setBasePath('database', this._storagePath);
+            this._pathManager.setBasePath('backup', this._storagePath + '_backups');
+            this._pathManager.setBasePath('temp', this._storagePath + '_temp');
+            this._pathManager.setBasePath('cache', this._storagePath + '_cache');
         }
 
         /**
@@ -108,22 +192,36 @@
          * @private
          */
         async _initializeNodeStorage() {
-            const fs = require('fs');
-            const path = require('path');
-            this._fs = fs;
-            this._path = path;
-
             try {
+                await this._initializePathManager();
+                
                 if (this._storageMode === 'file') {
-                    const filePath = this._storagePath.endsWith('.rdb') ? this._storagePath : `${this._storagePath}.rdb`;
-                    if (fs.existsSync(filePath)) {
+                    // Use PathManager to resolve the file path
+                    const resolvedPath = this._pathManager ? 
+                        await this._pathManager.resolve(this._storagePath, 'database') : 
+                        this._storagePath;
+                    const filePath = resolvedPath.endsWith('.rdb') ? resolvedPath : `${resolvedPath}.rdb`;
+                    
+                    if (this._fileManager && await this._fileManager.exists(filePath)) {
                         await this._loadFromFile(filePath);
                     } else {
-                        this._ensureDirectoryExists(path.dirname(filePath));
+                        const dirPath = this._pathManager ? 
+                            await this._pathManager.dirname(filePath) : 
+                            filePath.substring(0, filePath.lastIndexOf('/'));
+                        
+                        if (this._folderManager) {
+                            await this._folderManager.create(dirPath);
+                        }
                         await this._saveToFile(filePath, {});
                     }
                 } else if (this._storageMode === 'folder') {
-                    this._ensureDirectoryExists(this._storagePath);
+                    const resolvedPath = this._pathManager ? 
+                        await this._pathManager.resolve(this._storagePath, 'database') : 
+                        this._storagePath;
+                    
+                    if (this._folderManager) {
+                        await this._folderManager.create(resolvedPath);
+                    }
                     if (!this._lazyLoad) {
                         await this._loadAllTables();
                     }
@@ -192,73 +290,26 @@
             });
         }
 
-        /**
-         * Ensure directory exists (Node.js only)
-         * @param {string} dirPath
-         * @private
-         */
-        _ensureDirectoryExists(dirPath) {
-            if (!this._isNode) return;
-            const fs = require('fs');
-            if (!fs.existsSync(dirPath)) {
-                fs.mkdirSync(dirPath, { recursive: true });
-            }
-        }
+
 
         /**
-         * Browser-compatible path utilities
-         * @private
-         */
-        _getPathUtils() {
-            if (this._isNode) {
-                return require('path');
-            } else {
-                // Simple browser path utilities
-                return {
-                    join: (...parts) => parts.join('/').replace(/\/+/g, '/'),
-                    dirname: (path) => path.substring(0, path.lastIndexOf('/')),
-                    basename: (path, ext) => {
-                        const name = path.substring(path.lastIndexOf('/') + 1);
-                        return ext ? name.replace(ext, '') : name;
-                    },
-                    extname: (path) => {
-                        const lastDot = path.lastIndexOf('.');
-                        return lastDot > -1 ? path.substring(lastDot) : '';
-                    }
-                };
-            }
-        }
-
-        /**
-         * Generate secure ID using crypto (cross-platform)
+         * Generate secure ID using SecurityManager
          * @returns {string}
          * @private
          */
-        _generateSecureId() {
-            if (this._isBrowser) {
-                // Browser crypto API
-                if (window.crypto && window.crypto.getRandomValues) {
-                    const array = new Uint8Array(16);
-                    window.crypto.getRandomValues(array);
-                    const timestamp = Date.now().toString(36);
-                    const randomHex = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-                    return `${timestamp}-${randomHex}`.substring(0, 16);
-                } else {
-                    // Fallback for older browsers
-                    return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-                }
-            } else {
-                // Node.js crypto
-                const crypto = require('crypto');
-                const timestamp = Date.now().toString(36);
-                const randomBytes = crypto.randomBytes(16).toString('hex');
-                const combined = `${timestamp}-${randomBytes}`;
-                return crypto.createHash('sha256').update(combined).digest('hex').substr(0, 16);
+        async _generateSecureId() {
+            if (this._securityManager) {
+                return await this._securityManager.generateSecureId(16);
             }
+            
+            // Fallback implementation
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substr(2, 9);
+            return `${timestamp}-${random}`.substring(0, 16);
         }
 
         /**
-         * Encrypt data using AES-256 (cross-platform)
+         * Encrypt data using SecurityManager
          * @param {string} data
          * @returns {Promise<string>}
          * @private
@@ -266,15 +317,20 @@
         async _encrypt(data) {
             if (!this._encryptionKey) return data;
             
-            if (this._isBrowser) {
-                return await this._encryptBrowser(data);
+            if (this._securityManager) {
+                return await this._securityManager.encrypt(data, this._encryptionKey);
+            }
+            
+            // Fallback - simple base64 encoding
+            if (typeof Buffer !== 'undefined') {
+                return Buffer.from(data).toString('base64');
             } else {
-                return this._encryptNode(data);
+                return btoa(data);
             }
         }
 
         /**
-         * Decrypt data using AES-256 (cross-platform)
+         * Decrypt data using SecurityManager
          * @param {string} encryptedData
          * @returns {Promise<string>}
          * @private
@@ -282,153 +338,28 @@
         async _decrypt(encryptedData) {
             if (!this._encryptionKey) return encryptedData;
             
-            if (this._isBrowser) {
-                return await this._decryptBrowser(encryptedData);
-            } else {
-                return this._decryptNode(encryptedData);
+            if (this._securityManager) {
+                try {
+                    return await this._securityManager.decrypt(encryptedData, this._encryptionKey);
+                } catch (error) {
+                    this._log('decrypt_error', { error: error.message });
+                    return encryptedData; // Return original if decryption fails
+                }
             }
-        }
-
-        /**
-         * Node.js encryption
-         * @param {string} data
-         * @returns {string}
-         * @private
-         */
-        _encryptNode(data) {
-            const crypto = require('crypto');
-            const iv = crypto.randomBytes(16);
-            const cipher = crypto.createCipher('aes-256-cbc', this._encryptionKey);
-            let encrypted = cipher.update(data, 'utf8', 'hex');
-            encrypted += cipher.final('hex');
-            return iv.toString('hex') + ':' + encrypted;
-        }
-
-        /**
-         * Node.js decryption
-         * @param {string} encryptedData
-         * @returns {string}
-         * @private
-         */
-        _decryptNode(encryptedData) {
-            const crypto = require('crypto');
-            const parts = encryptedData.split(':');
-            const iv = Buffer.from(parts[0], 'hex');
-            const encrypted = parts[1];
-            const decipher = crypto.createDecipher('aes-256-cbc', this._encryptionKey);
-            let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-            decrypted += decipher.final('utf8');
-            return decrypted;
-        }
-
-        /**
-         * Browser encryption using Web Crypto API
-         * @param {string} data
-         * @returns {Promise<string>}
-         * @private
-         */
-        async _encryptBrowser(data) {
+            
+            // Fallback - simple base64 decoding
             try {
-                const encoder = new TextEncoder();
-                const decoder = new TextDecoder();
-                
-                // Generate a key from the encryption key string
-                const keyMaterial = await window.crypto.subtle.importKey(
-                    'raw',
-                    encoder.encode(this._encryptionKey),
-                    { name: 'PBKDF2' },
-                    false,
-                    ['deriveKey']
-                );
-
-                const key = await window.crypto.subtle.deriveKey(
-                    {
-                        name: 'PBKDF2',
-                        salt: encoder.encode('rockdx-salt'),
-                        iterations: 100000,
-                        hash: 'SHA-256'
-                    },
-                    keyMaterial,
-                    { name: 'AES-GCM', length: 256 },
-                    false,
-                    ['encrypt']
-                );
-
-                // Generate random IV
-                const iv = window.crypto.getRandomValues(new Uint8Array(12));
-                
-                // Encrypt data
-                const encrypted = await window.crypto.subtle.encrypt(
-                    { name: 'AES-GCM', iv: iv },
-                    key,
-                    encoder.encode(data)
-                );
-
-                // Combine IV and encrypted data
-                const combined = new Uint8Array(iv.length + encrypted.byteLength);
-                combined.set(iv);
-                combined.set(new Uint8Array(encrypted), iv.length);
-                
-                return Array.from(combined, byte => byte.toString(16).padStart(2, '0')).join('');
-            } catch (error) {
-                this._log('browser_encrypt_error', { error: error.message });
-                return data; // Fallback to unencrypted data
+                if (typeof Buffer !== 'undefined') {
+                    return Buffer.from(encryptedData, 'base64').toString('utf8');
+                } else {
+                    return atob(encryptedData);
+                }
+            } catch {
+                return encryptedData;
             }
         }
 
-        /**
-         * Browser decryption using Web Crypto API
-         * @param {string} encryptedHex
-         * @returns {Promise<string>}
-         * @private
-         */
-        async _decryptBrowser(encryptedHex) {
-            try {
-                const encoder = new TextEncoder();
-                const decoder = new TextDecoder();
-                
-                // Convert hex string back to Uint8Array
-                const combined = new Uint8Array(encryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-                
-                // Extract IV and encrypted data
-                const iv = combined.slice(0, 12);
-                const encrypted = combined.slice(12);
 
-                // Generate the same key
-                const keyMaterial = await window.crypto.subtle.importKey(
-                    'raw',
-                    encoder.encode(this._encryptionKey),
-                    { name: 'PBKDF2' },
-                    false,
-                    ['deriveKey']
-                );
-
-                const key = await window.crypto.subtle.deriveKey(
-                    {
-                        name: 'PBKDF2',
-                        salt: encoder.encode('rockdx-salt'),
-                        iterations: 100000,
-                        hash: 'SHA-256'
-                    },
-                    keyMaterial,
-                    { name: 'AES-GCM', length: 256 },
-                    false,
-                    ['decrypt']
-                );
-
-                // Decrypt data
-                const decrypted = await window.crypto.subtle.decrypt(
-                    { name: 'AES-GCM', iv: iv },
-                    key,
-                    encrypted
-                );
-
-                return decoder.decode(decrypted);
-            } catch (error) {
-                this._log('browser_decrypt_error', { error: error.message });
-                return encryptedHex; // Fallback to original data
-            }
-        }
 
         /**
          * Load data from file (cross-platform)
@@ -449,9 +380,12 @@
          * @private
          */
         async _loadFromFileNode(filePath) {
-            const fs = require('fs');
             try {
-                const rawData = fs.readFileSync(filePath, 'utf8');
+                if (!this._fileManager) {
+                    throw new Error('FileManager not available');
+                }
+                
+                const rawData = await this._fileManager.read(filePath, 'utf8');
                 const decryptedData = await this._decrypt(rawData);
                 const data = JSON.parse(decryptedData);
                 
@@ -554,18 +488,16 @@
          * @private
          */
         async _saveToFileNode(filePath, data) {
-            const fs = require('fs');
-            
             try {
+                if (!this._fileManager) {
+                    throw new Error('FileManager not available');
+                }
+                
                 const jsonData = JSON.stringify(data, null, 2);
                 const encryptedData = await this._encrypt(jsonData);
-                const tempPath = `${filePath}.tmp`;
                 
-                // Write to temporary file first (atomic operation)
-                fs.writeFileSync(tempPath, encryptedData, 'utf8');
-                
-                // Rename temp file to actual file (atomic on most systems)
-                fs.renameSync(tempPath, filePath);
+                // Use FileManager's atomic write operation
+                await this._fileManager.write(filePath, encryptedData, 'utf8');
                 
                 this._log('saved_to_file', { filePath, size: encryptedData.length });
             } catch (error) {
@@ -682,14 +614,18 @@
          * @private
          */
         async _loadAllTablesNode() {
-            const fs = require('fs');
-            const path = require('path');
-            
             try {
-                const files = fs.readdirSync(this._storagePath).filter(file => file.endsWith('.rdb'));
+                if (!this._folderManager || !this._pathManager) {
+                    throw new Error('FolderManager or PathManager not available');
+                }
+                
+                const files = await this._folderManager.list(this._storagePath);
+                
                 for (const file of files) {
-                    const tableName = path.basename(file, '.rdb');
-                    await this._loadTable(tableName);
+                    if (file.endsWith('.rdb')) {
+                        const tableName = await this._pathManager.basename(file, '.rdb');
+                        await this._loadTable(tableName);
+                    }
                 }
             } catch (error) {
                 this._lastError = error;
@@ -720,8 +656,12 @@
          * @private
          */
         async _loadTableNode(tableName) {
-            const path = require('path');
-            const filePath = path.join(this._storagePath, `${tableName}.rdb`);
+            if (!this._pathManager) {
+                this._loadedTables.add(tableName);
+                return;
+            }
+            
+            const filePath = await this._pathManager.join(this._storagePath, `${tableName}.rdb`);
             
             try {
                 await this._loadFromFile(filePath);
@@ -782,9 +722,8 @@
                 }
             };
 
-            if (this._isNode) {
-                const path = require('path');
-                const filePath = path.join(this._storagePath, `${tableName}.rdb`);
+            if (this._isNode && this._pathManager) {
+                const filePath = await this._pathManager.join(this._storagePath, `${tableName}.rdb`);
                 await this._saveToFile(filePath, { [tableName]: tableData });
             } else {
                 await this._saveToFile(`${tableName}.rdb`, { [tableName]: tableData });
@@ -1384,9 +1323,9 @@
          * Insert data with validation and timestamps
          * @param {string} tableName
          * @param {Object} data
-         * @returns {RockdexDB}
+         * @returns {Promise<RockdexDB>}
          */
-        insert (tableName, data) {
+        async insert (tableName, data) {
             // Lazy load table if needed
             if (this._lazyLoad && this._storageMode === 'folder' && !this._loadedTables.has(tableName)) {
                 // Queue the load operation
@@ -1404,9 +1343,9 @@
 
             // Handle ID generation
             if (data.id === 'AUTO_INCREMENT') {
-                newData.id = this._generateSecureId();
+                newData.id = await this._generateSecureId();
             } else if (!data.id) {
-                newData.id = this._generateSecureId();
+                newData.id = await this._generateSecureId();
             }
 
             // Store the last insert ID
@@ -1453,10 +1392,12 @@
          * Bulk insert multiple rows
          * @param {string} tableName
          * @param {Array} dataArray
-         * @returns {RockdexDB}
+         * @returns {Promise<RockdexDB>}
          */
-        bulkInsert (tableName, dataArray) {
-            dataArray.forEach(data => this.insert(tableName, data));
+        async bulkInsert (tableName, dataArray) {
+            for (const data of dataArray) {
+                await this.insert(tableName, data);
+            }
             return this;
         }
 
@@ -2033,7 +1974,8 @@
                 tables: {},
                 totalRecords: 0,
                 loadedTables: Array.from(this._loadedTables),
-                memoryUsage: 0
+                memoryUsage: 0,
+                pathAliases: this._pathManager ? this._pathManager.getAliases() : {}
             };
 
             for (const [tableName, rows] of this._tables.entries()) {
@@ -2058,6 +2000,111 @@
             return stats;
         }
 
+        /**
+         * Set a custom path alias for the database
+         * @param {string} alias - The alias symbol (e.g., '@assets', '~data')
+         * @param {string} path - The path to resolve to
+         * @returns {RockdexDB}
+         */
+        setPathAlias(alias, path) {
+            if (this._pathManager) {
+                this._pathManager.setAlias(alias, path);
+            }
+            return this;
+        }
+
+        /**
+         * Remove a path alias
+         * @param {string} alias 
+         * @returns {RockdexDB}
+         */
+        removePathAlias(alias) {
+            if (this._pathManager) {
+                this._pathManager.removeAlias(alias);
+            }
+            return this;
+        }
+
+        /**
+         * Get all configured path aliases
+         * @returns {Object}
+         */
+        getPathAliases() {
+            return this._pathManager ? this._pathManager.getAliases() : {};
+        }
+
+        /**
+         * Resolve a path using configured aliases and contexts
+         * @param {string} path - Path that may contain aliases
+         * @param {string} context - Optional context (e.g., 'backup', 'temp')
+         * @returns {Promise<string>}
+         */
+        async resolvePath(path, context = null) {
+            if (this._pathManager) {
+                return await this._pathManager.resolve(path, context);
+            }
+            return path;
+        }
+
+        /**
+         * Generate a unique file path for database operations
+         * @param {string} basePath - Base directory path
+         * @param {string} prefix - File prefix (default: 'rockdx')
+         * @param {string} extension - File extension (default: '.rdb')
+         * @returns {Promise<string>}
+         */
+        async generateUniquePath(basePath = '@temp', prefix = 'rockdx', extension = '.rdb') {
+            if (this._pathManager) {
+                const resolvedBase = await this._pathManager.resolve(basePath);
+                return await this._pathManager.generateUniqueePath(resolvedBase, prefix, extension);
+            }
+            
+            // Fallback implementation
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(7);
+            return `${basePath}/${prefix}_${timestamp}_${random}${extension}`;
+        }
+
+        /**
+         * Create a path from a pattern with dynamic placeholders
+         * @param {string} pattern - Pattern with placeholders like {year}, {month}, {tableName}
+         * @param {Object} context - Additional context for replacements
+         * @returns {Promise<string>}
+         */
+        async createPathFromPattern(pattern, context = {}) {
+            if (this._pathManager) {
+                return await this._pathManager.createFromPattern(pattern, context);
+            }
+            return pattern;
+        }
+
+        /**
+         * Validate if a path is secure (within allowed boundaries)
+         * @param {string} path - Path to validate
+         * @param {string} allowedBasePath - Allowed base path (default: current storage path)
+         * @returns {Promise<boolean>}
+         */
+        async isSecurePath(path, allowedBasePath = null) {
+            if (this._pathManager) {
+                const basePath = allowedBasePath || this._storagePath;
+                return await this._pathManager.isSecurePath(path, basePath);
+            }
+            return true; // Fallback to allowing all paths
+        }
+
+        /**
+         * Set base path for a specific context
+         * @param {string} context - Context name (e.g., 'backup', 'temp', 'cache')
+         * @param {string} basePath - Base path for the context
+         * @returns {RockdexDB}
+         */
+        setContextBasePath(context, basePath) {
+            if (this._pathManager) {
+                this._pathManager.setBasePath(context, basePath);
+            }
+            return this;
+        }
+
     }
 
     // Constants
@@ -2072,6 +2119,12 @@
         LIKE: 'LIKE',
         IN: 'IN'
     };
+
+    // Expose utility classes
+    RockdexDB.FileManager = FileManager;
+    RockdexDB.FolderManager = FolderManager;
+    RockdexDB.SecurityManager = SecurityManager;
+    RockdexDB.PathManager = PathManager;
 
     return RockdexDB;
 }));
