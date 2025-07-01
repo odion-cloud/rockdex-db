@@ -607,10 +607,10 @@ console.log('Adult users:', adults);</pre>
 
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                <pre>// Enable performance optimizations
-const db = new RockdxDB({
-    storageMode: 'memory',        // Works with both 'memory' and 'file'
-    performance: true,            // Enable all optimizations
+                <pre>            // Enable performance optimizations
+            const db = new RockdexDB({
+                storageMode: 'memory',        // Works with both 'memory' and 'file'
+                performance: true,            // Enable all optimizations
     autoIndex: true,              // Auto-create indexes
     chunkSize: 10000,             // Records per memory chunk
     maxMemoryChunks: 5,           // Max chunks in RAM
@@ -932,6 +932,962 @@ db.createTable('users', optimizedSchema);
 
             <div class="alert alert-info">
                 <strong>📖 Full Documentation:</strong> Visit our <a href="https://github.com/odion-cloud/rockdex-db" target="_blank">GitHub repository</a> for complete API documentation and more examples.
+            </div>
+        </div>
+
+        <!-- Installation Tab -->
+        <div id="setup" class="tab-content">
+            <h2>📦 Installation & Setup</h2>
+            
+            <h3>🚀 Quick Installation</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Install via npm
+npm install @odion-cloud/rockdex-db
+
+# Or install via yarn  
+yarn add @odion-cloud/rockdex-db</pre>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>📋 Requirements:</strong>
+                <ul style="margin: 0.5rem 0;">
+                    <li><strong>Node.js:</strong> Version 12.0+ (for server-side usage)</li>
+                    <li><strong>Browser:</strong> Any modern browser (Chrome, Firefox, Safari, Edge)</li>
+                    <li><strong>Dependencies:</strong> Zero! Completely standalone</li>
+                </ul>
+            </div>
+
+            <h3>📁 Manual File Setup (File Mode)</h3>
+            <p>For file-based persistence, you need to create your database files manually:</p>
+
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Create Database Directory</strong>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre># Create your database folder
+mkdir ./database
+
+# Or any custom path
+mkdir ./my-project/data</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Create Empty .rdb Files</strong>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre># Create empty table files
+touch ./database/users.rdb
+touch ./database/products.rdb  
+touch ./database/orders.rdb
+
+# Windows users:
+echo. > .\database\users.rdb
+echo. > .\database\products.rdb
+echo. > .\database\orders.rdb</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Configure Database</strong>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre>const RockdexDB = require('@odion-cloud/rockdex-db');
+
+const db = new RockdexDB({
+    storageMode: 'file',
+    storagePath: './database',
+    storageTable: ['users.rdb', 'products.rdb', 'orders.rdb']
+});</pre>
+                </div>
+            </div>
+
+            <h3>🌐 Browser Setup</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>&lt;!-- Include via CDN --&gt;
+&lt;script src="https://unpkg.com/@odion-cloud/rockdex-db@latest/rockdex-db.min.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+// Use in browser (memory mode recommended)
+const db = new RockdxDB({
+    storageMode: 'memory',
+    logging: true
+});
+&lt;/script&gt;</pre>
+            </div>
+
+            <h3>⚙️ Configuration Options</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>storageMode</code></td>
+                        <td>string</td>
+                        <td>'memory'</td>
+                        <td>'memory' or 'file' storage</td>
+                    </tr>
+                    <tr>
+                        <td><code>storagePath</code></td>
+                        <td>string</td>
+                        <td>'./'</td>
+                        <td>Database folder path</td>
+                    </tr>
+                    <tr>
+                        <td><code>storageTable</code></td>
+                        <td>array</td>
+                        <td>[]</td>
+                        <td>List of .rdb files to use</td>
+                    </tr>
+                    <tr>
+                        <td><code>logging</code></td>
+                        <td>boolean</td>
+                        <td>false</td>
+                        <td>Enable operation logging</td>
+                    </tr>
+                    <tr>
+                        <td><code>timestamps</code></td>
+                        <td>boolean</td>
+                        <td>false</td>
+                        <td>Auto-add created_at/updated_at</td>
+                    </tr>
+                    <tr>
+                        <td><code>performance</code></td>
+                        <td>boolean</td>
+                        <td>true</td>
+                        <td>Enable performance optimizations</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="alert alert-success">
+                <strong>✅ Ready to Go!</strong> You're now ready to start using RockdxDB! Check out the Quick Start tab for your first database operations.
+            </div>
+        </div>
+
+        <!-- Quick Start Tab -->
+        <div id="usage" class="tab-content">
+            <h2>🚀 Quick Start Guide</h2>
+            
+            <h3>Basic Usage</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>const RockdexDB = require('@odion-cloud/rockdex-db');
+
+// Create database instance
+const db = new RockdexDB({
+    storageMode: 'memory',
+    logging: true,
+    timestamps: true
+});
+
+// Create a table
+db.createTable('users');
+
+// Insert data
+db.insert('users', {
+    name: 'John Doe',
+    email: 'john@example.com',
+    age: 30
+});
+
+// Query data
+const users = await db.get('users');
+console.log('All users:', users);
+
+// Advanced queries
+const adults = await db
+    .whereOperator('age', '>=', 18)
+    .orderBy('name')
+    .get('users');
+
+console.log('Adult users:', adults);</pre>
+            </div>
+
+            <h3>Schema Validation</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>// Define schema for validation
+const userSchema = {
+    name: { type: 'string', required: true },
+    email: { type: 'string', required: true, pattern: /^\S+@\S+\.\S+$/ },
+    age: { type: 'number', min: 0, max: 150 }
+};
+
+// Create table with schema
+db.createTable('validated_users', userSchema);
+
+try {
+    db.insert('validated_users', {
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        age: 25
+    });
+    console.log('User inserted successfully!');
+} catch (error) {
+    console.error('Validation error:', error.message);
+}</pre>
+            </div>
+
+            <h3>File Mode Setup</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>// 1. Create database folder and files manually
+// mkdir ./database
+// touch ./database/users.rdb
+// touch ./database/products.rdb
+
+// 2. Configure for file mode
+const db = new RockdexDB({
+    storageMode: 'file',
+    storagePath: './database',
+    storageTable: ['users.rdb', 'products.rdb']
+});
+
+// 3. Use normally - data persists to files
+db.insert('users', { name: 'John', email: 'john@example.com' });
+db.insert('products', { name: 'Laptop', price: 999 });
+
+// 4. Export/import for backups
+const userData = db.getTableExport('users');
+// Save userData to backup or transfer to another system</pre>
+            </div>
+
+            <h3>Common Operations</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🔍 Querying</h4>
+                    <div class="code-block">
+                        <pre>// Simple where
+const activeUsers = await db
+    .where('status', 'active')
+    .get('users');
+
+// Multiple conditions  
+const results = await db
+    .where('status', 'active')
+    .whereOperator('age', '>', 21)
+    .limit(10)
+    .get('users');</pre>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h4>📝 Updating</h4>
+                    <div class="code-block">
+                        <pre>// Update records
+db.where('email', 'john@example.com')
+  .update('users', {
+      status: 'premium',
+      lastLogin: new Date().toISOString()
+  });
+
+console.log('Updated:', db.getLastInsertId());</pre>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h4>🗑️ Deleting</h4>
+                    <div class="code-block">
+                        <pre>// Delete records
+db.where('status', 'inactive')
+  .delete('users');
+
+// Count remaining
+const count = db.count('users');
+console.log('Active users:', count);</pre>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 Aggregations</h4>
+                    <div class="code-block">
+                        <pre>// Statistics
+const avgAge = db.avg('users', 'age');
+const totalOrders = db.sum('orders', 'amount');
+const maxPrice = db.max('products', 'price');
+
+console.log('Average age:', avgAge);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>💡 Pro Tips:</strong>
+                <ul style="margin: 0.5rem 0;">
+                    <li>Use <code>memory</code> mode for fast prototyping and testing</li>
+                    <li>Use <code>file</code> mode for persistent data storage</li>
+                    <li>Enable <code>logging: true</code> to see operation details</li>
+                    <li>Use <code>timestamps: true</code> for automatic date tracking</li>
+                    <li>Chain query methods for complex filters</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Examples Tab -->
+        <div id="examples" class="tab-content">
+            <h2>💡 Real-World Examples</h2>
+            
+            <h3>🛒 E-Commerce Store</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>const RockdexDB = require('@odion-cloud/rockdex-db');
+
+// Initialize e-commerce database
+const db = new RockdexDB({
+    storageMode: 'file',
+    storagePath: './ecommerce-db',
+    storageTable: ['products.rdb', 'customers.rdb', 'orders.rdb'],
+    timestamps: true,
+    logging: true
+});
+
+// Product schema
+const productSchema = {
+    name: { type: 'string', required: true },
+    price: { type: 'number', required: true, min: 0 },
+    category: { type: 'string', required: true },
+    stock: { type: 'number', required: true, min: 0 },
+    sku: { type: 'string', required: true }
+};
+
+db.createTable('products', productSchema);
+db.createTable('customers');
+db.createTable('orders');
+
+// Add products
+db.insert('products', {
+    name: 'Gaming Laptop',
+    price: 1299.99,
+    category: 'Electronics',
+    stock: 25,
+    sku: 'LAPTOP-GAMING-001'
+});
+
+db.insert('products', {
+    name: 'Wireless Mouse',
+    price: 49.99,
+    category: 'Electronics', 
+    stock: 100,
+    sku: 'MOUSE-WIRELESS-001'
+});
+
+// Find products by category and price range
+const affordableElectronics = await db
+    .where('category', 'Electronics')
+    .whereOperator('price', '<', 100)
+    .whereOperator('stock', '>', 0)
+    .orderBy('price', 'ASC')
+    .get('products');
+
+console.log('Affordable electronics:', affordableElectronics);
+
+// Customer registration
+db.insert('customers', {
+    name: 'Alice Johnson',
+    email: 'alice@example.com',
+    address: '123 Main St, Anytown USA',
+    memberSince: new Date().toISOString()
+});
+
+// Order processing with transaction
+db.transaction(db => {
+    const customerId = db.getLastInsertId();
+    
+    // Create order
+    db.insert('orders', {
+        customerId: customerId,
+        products: ['LAPTOP-GAMING-001'],
+        total: 1299.99,
+        status: 'pending'
+    });
+    
+    // Update inventory
+    db.where('sku', 'LAPTOP-GAMING-001')
+      .update('products', { stock: 24 });
+});
+
+console.log('Order processed successfully!');</pre>
+            </div>
+
+            <h3>👥 User Management System</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>// User management with roles and permissions
+const db = new RockdxDB({
+    storageMode: 'memory',
+    timestamps: true,
+    softDelete: true  // Enable soft deletion
+});
+
+const userSchema = {
+    username: { type: 'string', required: true },
+    email: { type: 'string', required: true, pattern: /^\S+@\S+\.\S+$/ },
+    role: { type: 'string', required: true },
+    active: { type: 'boolean', required: true }
+};
+
+db.createTable('users', userSchema);
+db.createTable('sessions');
+db.createTable('audit_log');
+
+// Add audit trigger
+db.createTrigger('users', 'afterUpdate', ({ OLD, NEW }) => {
+    db.insert('audit_log', {
+        action: 'user_updated',
+        userId: NEW.id,
+        changes: { 
+            old: OLD,
+            new: NEW
+        },
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Create users
+const users = [
+    { username: 'admin', email: 'admin@company.com', role: 'admin', active: true },
+    { username: 'john_doe', email: 'john@company.com', role: 'user', active: true },
+    { username: 'jane_smith', email: 'jane@company.com', role: 'moderator', active: true }
+];
+
+users.forEach(user => db.insert('users', user));
+
+// Find all active moderators
+const moderators = await db
+    .where('role', 'moderator')
+    .where('active', true)
+    .get('users');
+
+// User login simulation
+function loginUser(username) {
+    const user = db.where('username', username).getOne('users');
+    
+    if (user && user.active) {
+        // Create session
+        db.insert('sessions', {
+            userId: user.id,
+            token: 'session_' + Date.now(),
+            expiresAt: new Date(Date.now() + 24*60*60*1000).toISOString()
+        });
+        
+        return { success: true, user, message: 'Login successful' };
+    }
+    
+    return { success: false, message: 'Invalid credentials' };
+}
+
+const loginResult = loginUser('john_doe');
+console.log('Login result:', loginResult);</pre>
+            </div>
+
+            <h3>📊 Analytics Dashboard</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>// Analytics with aggregations and reporting
+const db = new RockdxDB({
+    storageMode: 'memory',
+    performance: true,  // Enable performance optimizations
+    autoIndex: true     // Auto-create indexes
+});
+
+db.createTable('page_views');
+db.createTable('user_events');
+
+// Simulate analytics data
+function generateAnalyticsData() {
+    const pages = ['/home', '/products', '/about', '/contact', '/blog'];
+    const events = ['click', 'scroll', 'form_submit', 'download'];
+    
+    for (let i = 0; i < 10000; i++) {
+        // Page views
+        db.insert('page_views', {
+            page: pages[Math.floor(Math.random() * pages.length)],
+            userId: Math.floor(Math.random() * 1000),
+            timestamp: new Date(Date.now() - Math.random() * 30*24*60*60*1000).toISOString(),
+            duration: Math.floor(Math.random() * 300) + 10,
+            source: Math.random() > 0.5 ? 'organic' : 'paid'
+        });
+        
+        // User events  
+        db.insert('user_events', {
+            event: events[Math.floor(Math.random() * events.length)],
+            userId: Math.floor(Math.random() * 1000),
+            value: Math.floor(Math.random() * 100),
+            timestamp: new Date(Date.now() - Math.random() * 30*24*60*60*1000).toISOString()
+        });
+    }
+}
+
+// Generate test data
+generateAnalyticsData();
+
+// Analytics queries
+const totalPageViews = db.count('page_views');
+const avgDuration = db.avg('page_views', 'duration');
+const topPages = db.groupBy('page_views', 'page');
+
+// Popular pages ranking
+const pageStats = Object.entries(topPages)
+    .map(([page, views]) => ({ page, count: views.length }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+console.log('Analytics Report:');
+console.log('Total page views:', totalPageViews);
+console.log('Average duration:', Math.round(avgDuration), 'seconds');
+console.log('Top pages:', pageStats);
+
+// User behavior analysis
+const activeUsers = await db
+    .whereOperator('timestamp', '>', new Date(Date.now() - 7*24*60*60*1000).toISOString())
+    .distinct('user_events', 'userId');
+
+console.log('Active users (last 7 days):', activeUsers.length);</pre>
+            </div>
+
+            <h3>🔐 Manual Encryption Example</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>const crypto = require('crypto');
+
+// Simple encryption helpers
+function encrypt(text, password) {
+    const cipher = crypto.createCipher('aes-256-cbc', password);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+}
+
+function decrypt(encryptedText, password) {
+    const decipher = crypto.createDecipher('aes-256-cbc', password);
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+}
+
+// Database with manual encryption
+const db = new RockdxDB({ storageMode: 'memory' });
+db.createTable('secrets');
+
+const SECRET_KEY = 'your-secret-password';
+
+// Store encrypted sensitive data
+const sensitiveData = {
+    username: 'admin',
+    password: 'super-secret-password',
+    apiKey: 'sk-1234567890abcdef'
+};
+
+const encryptedData = encrypt(JSON.stringify(sensitiveData), SECRET_KEY);
+
+db.insert('secrets', {
+    id: 1,
+    data: encryptedData,
+    type: 'credentials'
+});
+
+// Retrieve and decrypt
+const secret = db.where('id', 1).getOne('secrets');
+const decryptedData = JSON.parse(decrypt(secret.data, SECRET_KEY));
+
+console.log('Decrypted sensitive data:', decryptedData);</pre>
+            </div>
+
+            <h3>🔄 Backup & Restore</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>// Complete backup and restore workflow
+const db = new RockdxDB({
+    storageMode: 'file',
+    storagePath: './app-data',
+    storageTable: ['users.rdb', 'posts.rdb', 'settings.rdb']
+});
+
+// Add some data
+db.insert('users', { name: 'John', email: 'john@example.com' });
+db.insert('posts', { title: 'Hello World', content: 'My first post' });
+
+// Create full database backup
+const backup = db.backup();
+console.log('Backup created:', backup.timestamp);
+
+// Export individual tables
+const usersExport = db.getTableExport('users');
+const postsExport = db.getTableExport('posts');
+
+// Save to files (Node.js)
+const fs = require('fs');
+fs.writeFileSync('./backup-users.json', usersExport);
+fs.writeFileSync('./backup-posts.json', postsExport);
+
+// Simulate data loss
+db.truncate('users');
+db.truncate('posts');
+console.log('Data cleared');
+
+// Restore from backup
+db.restore(backup);
+console.log('Data restored from backup');
+
+// Or restore individual tables
+const restoredUsers = fs.readFileSync('./backup-users.json', 'utf8');
+db.importTable('users', restoredUsers);
+
+console.log('Users restored:', db.count('users'));</pre>
+            </div>
+
+            <div class="alert alert-success">
+                <strong>🎉 More Examples:</strong> Visit our <a href="https://github.com/odion-cloud/rockdx-db/tree/main/examples" target="_blank">GitHub examples folder</a> for more real-world use cases and advanced patterns!
+            </div>
+        </div>
+
+        <!-- API Reference Tab -->
+        <div id="api" class="tab-content">
+            <h2>📚 API Reference</h2>
+            
+            <h3>Constructor</h3>
+            <div class="method-card">
+                <div class="method-name">new RockdxDB(config)</div>
+                <p>Create a new database instance.</p>
+                <div class="code-block">
+                    <pre>const db = new RockdxDB({
+    storageMode: 'memory',      // 'memory' | 'file'
+    storagePath: './',          // Database folder path
+    storageTable: [],           // Array of .rdb files
+    logging: false,             // Enable operation logging
+    timestamps: false,          // Auto-add created_at/updated_at
+    softDelete: false,          // Enable soft deletion
+    performance: true,          // Enable optimizations
+    autoIndex: true,            // Auto-create indexes
+    chunkSize: 10000,           // Records per chunk
+    maxMemoryChunks: 5         // Max chunks in RAM
+});</pre>
+                </div>
+            </div>
+
+            <h3>Table Management</h3>
+            <div class="method-card">
+                <div class="method-name">createTable(tableName, schema?)</div>
+                <p>Create a new table with optional schema validation.</p>
+                <div class="code-block">
+                    <pre>db.createTable('users', {
+    name: { type: 'string', required: true },
+    age: { type: 'number', min: 0, max: 150 }
+});</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">setTable(tableName, data, schema?)</div>
+                <p>Create or replace a table with initial data.</p>
+                <div class="code-block">
+                    <pre>db.setTable('users', [
+    { name: 'John', age: 30 },
+    { name: 'Jane', age: 25 }
+]);</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">dropTable(tableName)</div>
+                <p>Delete a table and all its data.</p>
+                <div class="code-block">
+                    <pre>db.dropTable('users');</pre>
+                </div>
+            </div>
+
+            <h3>Data Operations</h3>
+            <div class="method-card">
+                <div class="method-name">insert(tableName, data)</div>
+                <p>Insert a new record into the table.</p>
+                <div class="code-block">
+                    <pre>db.insert('users', {
+    name: 'John Doe',
+    email: 'john@example.com'
+});</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">get(tableName) → Promise&lt;Array&gt;</div>
+                <p>Retrieve records with applied filters.</p>
+                <div class="code-block">
+                    <pre>const users = await db.get('users');
+const adults = await db.whereOperator('age', '>=', 18).get('users');</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">getOne(tableName) → Object|null</div>
+                <p>Get the first matching record.</p>
+                <div class="code-block">
+                    <pre>const user = db.where('email', 'john@example.com').getOne('users');</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">update(tableName, data)</div>
+                <p>Update matching records.</p>
+                <div class="code-block">
+                    <pre>db.where('email', 'john@example.com')
+  .update('users', { status: 'active' });</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">delete(tableName)</div>
+                <p>Delete matching records.</p>
+                <div class="code-block">
+                    <pre>db.where('status', 'inactive').delete('users');</pre>
+                </div>
+            </div>
+
+            <h3>Query Methods</h3>
+            <div class="method-card">
+                <div class="method-name">where(field, value, operator?)</div>
+                <p>Add WHERE condition.</p>
+                <div class="code-block">
+                    <pre>db.where('status', 'active')
+  .where('age', 25, 'AND')</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">whereOperator(field, operator, value)</div>
+                <p>WHERE with custom operator.</p>
+                <div class="code-block">
+                    <pre>db.whereOperator('age', '>', 18)
+  .whereOperator('salary', '<=', 50000)</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">whereIn(field, values)</div>
+                <p>WHERE field IN array.</p>
+                <div class="code-block">
+                    <pre>db.whereIn('status', ['active', 'pending', 'verified'])</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">whereLike(field, pattern)</div>
+                <p>WHERE field LIKE pattern.</p>
+                <div class="code-block">
+                    <pre>db.whereLike('email', '%@gmail.com')</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">orderBy(column, direction?)</div>
+                <p>Sort results by column.</p>
+                <div class="code-block">
+                    <pre>db.orderBy('created_at', 'DESC')
+  .orderBy('name', 'ASC')</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">limit(count, offset?)</div>
+                <p>Limit and paginate results.</p>
+                <div class="code-block">
+                    <pre>db.limit(10)           // First 10 records
+  .limit(10, 20)       // Records 21-30</pre>
+                </div>
+            </div>
+
+            <h3>Aggregation Methods</h3>
+            <div class="method-card">
+                <div class="method-name">count(tableName) → number</div>
+                <p>Count matching records.</p>
+                <div class="code-block">
+                    <pre>const total = db.count('users');
+const adults = db.whereOperator('age', '>=', 18).count('users');</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">sum(tableName, column) → number</div>
+                <p>Sum values in numeric column.</p>
+                <div class="code-block">
+                    <pre>const totalRevenue = db.sum('orders', 'amount');</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">avg(tableName, column) → number</div>
+                <p>Average value of numeric column.</p>
+                <div class="code-block">
+                    <pre>const avgAge = db.avg('users', 'age');</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">min/max(tableName, column) → any</div>
+                <p>Minimum/maximum value in column.</p>
+                <div class="code-block">
+                    <pre>const youngest = db.min('users', 'age');
+const oldest = db.max('users', 'age');</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">distinct(tableName, column) → Array</div>
+                <p>Get unique values from column.</p>
+                <div class="code-block">
+                    <pre>const roles = db.distinct('users', 'role');</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">groupBy(tableName, column) → Object</div>
+                <p>Group records by column value.</p>
+                <div class="code-block">
+                    <pre>const usersByRole = db.groupBy('users', 'role');</pre>
+                </div>
+            </div>
+
+            <h3>Advanced Features</h3>
+            <div class="method-card">
+                <div class="method-name">transaction(callback)</div>
+                <p>Execute operations atomically.</p>
+                <div class="code-block">
+                    <pre>db.transaction(db => {
+    db.insert('users', userData);
+    db.insert('profiles', profileData);
+    // Rollback on any error
+});</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">createTrigger(tableName, triggerName, callback)</div>
+                <p>Create event-driven operations.</p>
+                <div class="code-block">
+                    <pre>db.createTrigger('users', 'beforeInsert', ({ NEW }) => {
+    NEW.created_at = new Date().toISOString();
+    return true; // Allow operation
+});</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">join(table1, table2, key1, key2) → Array</div>
+                <p>Join two tables on keys.</p>
+                <div class="code-block">
+                    <pre>const usersWithProfiles = db.join('users', 'profiles', 'id', 'userId');</pre>
+                </div>
+            </div>
+
+            <h3>Performance Methods</h3>
+            <div class="method-card">
+                <div class="method-name">createIndex(tableName, field)</div>
+                <p>Create B-tree index for fast lookups.</p>
+                <div class="code-block">
+                    <pre>db.createIndex('users', 'email');  // Fast email queries</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">bulkInsert(tableName, dataArray) → Promise</div>
+                <p>Optimized bulk data insertion.</p>
+                <div class="code-block">
+                    <pre>await db.bulkInsert('users', largeDataArray);</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">getPerformanceMetrics() → Object</div>
+                <p>Get detailed performance statistics.</p>
+                <div class="code-block">
+                    <pre>const metrics = db.getPerformanceMetrics();
+console.log('Avg query time:', metrics.averageQueryTime);</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">benchmark(recordCount?) → Promise&lt;Object&gt;</div>
+                <p>Run performance benchmarks.</p>
+                <div class="code-block">
+                    <pre>const results = await db.benchmark(50000);
+console.log('Speedup:', results.performance.speedupFactor);</pre>
+                </div>
+            </div>
+
+            <h3>Utility Methods</h3>
+            <div class="method-card">
+                <div class="method-name">backup() → Object</div>
+                <p>Create complete database backup.</p>
+                <div class="code-block">
+                    <pre>const backup = db.backup();
+fs.writeFileSync('backup.json', JSON.stringify(backup));</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">restore(backup)</div>
+                <p>Restore database from backup.</p>
+                <div class="code-block">
+                    <pre>const backup = JSON.parse(fs.readFileSync('backup.json'));
+db.restore(backup);</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">getTableExport(tableName) → string</div>
+                <p>Export table data as JSON string.</p>
+                <div class="code-block">
+                    <pre>const exportData = db.getTableExport('users');</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">importTable(tableName, jsonData)</div>
+                <p>Import table data from JSON string.</p>
+                <div class="code-block">
+                    <pre>db.importTable('users', exportData);</pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-name">getStorageStats() → Object</div>
+                <p>Get detailed storage statistics.</p>
+                <div class="code-block">
+                    <pre>const stats = db.getStorageStats();
+console.log('Total records:', stats.totalRecords);
+console.log('Memory usage:', stats.memoryUsage, 'MB');</pre>
+                </div>
+            </div>
+
+            <h3>Schema Definition</h3>
+            <div class="method-card">
+                <div class="method-name">Schema Fields</div>
+                <p>Available schema validation options:</p>
+                <div class="code-block">
+                    <pre>const schema = {
+    fieldName: {
+        type: 'string' | 'number' | 'boolean' | 'object',
+        required: true | false,
+        min: 0,              // Minimum value (numbers)
+        max: 100,            // Maximum value (numbers)  
+        length: 10,          // Exact length (strings)
+        pattern: /regex/,    // Regex pattern (strings)
+        indexed: true        // Create index (performance)
+    }
+};</pre>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>📖 Complete Documentation:</strong> For more detailed examples and advanced usage patterns, visit our <a href="https://github.com/odion-cloud/rockdx-db" target="_blank">GitHub repository</a>.
             </div>
         </div>
 
