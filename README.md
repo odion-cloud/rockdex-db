@@ -243,9 +243,9 @@ const userSchema = {
 db.createTable('users', userSchema);
 
 // This will validate against schema
-db.insert('users', { 
+db.insert('users', {
     name: 'John', 
-    email: 'john@example.com', 
+    email: 'john@example.com',
     age: 30 
 });
 ```

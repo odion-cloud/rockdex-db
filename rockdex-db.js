@@ -892,7 +892,74 @@
             return this;
         }
 
+        /**
+         * High-performance get method with indexing
+         */
+        async get(tableName) {
+            const results = this._get(tableName);
+            this._resetConditions();
+            return results;
+        }
 
+        /**
+         * Internal synchronous get method for aggregation functions
+         * @private
+         */
+        _get(tableName) {
+            if (!this._tables.has(tableName)) {
+                throw new Error(`Table '${tableName}' does not exist`);
+            }
+
+            const startTime = performance.now();
+            let results;
+            
+            // Try to use indexes for primary condition
+            if (this._whereConditions.length > 0 && this._performanceEnabled) {
+                const primaryCondition = this._whereConditions[0];
+                const indexedResults = this._executeIndexedQuery(
+                    tableName, 
+                    primaryCondition.field, 
+                    primaryCondition.value, 
+                    primaryCondition.operator
+                );
+                
+                if (indexedResults) {
+                    results = indexedResults;
+                    
+                    // Apply remaining conditions
+                    if (this._whereConditions.length > 1) {
+                        results = this._applyConditions(results);
+                    }
+                } else {
+                    // Fallback to full table scan
+                    results = [...this._tables.get(tableName)];
+                    results = this._applyConditions(results);
+                }
+            } else {
+                // No conditions or performance disabled - get all
+                results = [...this._tables.get(tableName)];
+                results = this._applyConditions(results);
+            }
+
+            // Apply soft delete filter
+            if (this._softDelete) {
+                results = results.filter(row => !row.deleted_at);
+            }
+
+            // Record performance metrics
+            const queryTime = performance.now() - startTime;
+            this._metrics.queryTimes.push(queryTime);
+            
+            this._log('get', { 
+                tableName, 
+                resultCount: results.length, 
+                queryTime: queryTime.toFixed(2) + 'ms',
+                indexUsed: this._metrics.indexUsage > 0,
+                storageMode: this._storageMode 
+            });
+            
+            return results;
+        }
 
         /**
          * Get first matching row
@@ -900,7 +967,8 @@
          * @returns {Object|null}
          */
         getOne(tableName) {
-            const results = this.get(tableName);
+            const results = this._get(tableName);
+            this._resetConditions();
             return results.length > 0 ? results[0] : null;
         }
 
@@ -936,8 +1004,6 @@
             this._offset = offset;
             return this;
         }
-
-
 
         /**
          * Add where condition with OR
@@ -980,7 +1046,9 @@
          * @returns {number}
          */
         count(tableName) {
-            return this.get(tableName).length;
+            const results = this._get(tableName);
+            this._resetConditions();
+            return results.length;
         }
 
         /**
@@ -990,7 +1058,8 @@
          * @returns {Array}
          */
         distinct(tableName, column) {
-            const results = this.get(tableName);
+            const results = this._get(tableName);
+            this._resetConditions();
             return [...new Set(results.map(row => row[column]))];
         }
 
@@ -1001,7 +1070,8 @@
          * @returns {number}
          */
         avg(tableName, column) {
-            const results = this.get(tableName);
+            const results = this._get(tableName);
+            this._resetConditions();
             if (results.length === 0) return 0;
             return results.reduce((sum, row) => sum + (row[column] || 0), 0) / results.length;
         }
@@ -1013,7 +1083,8 @@
          * @returns {number}
          */
         sum(tableName, column) {
-            const results = this.get(tableName);
+            const results = this._get(tableName);
+            this._resetConditions();
             return results.reduce((sum, row) => sum + (row[column] || 0), 0);
         }
 
@@ -1024,7 +1095,8 @@
          * @returns {any}
          */
         min(tableName, column) {
-            const results = this.get(tableName);
+            const results = this._get(tableName);
+            this._resetConditions();
             if (results.length === 0) return null;
             return Math.min(...results.map(row => row[column]));
         }
@@ -1036,7 +1108,8 @@
          * @returns {any}
          */
         max(tableName, column) {
-            const results = this.get(tableName);
+            const results = this._get(tableName);
+            this._resetConditions();
             if (results.length === 0) return null;
             return Math.max(...results.map(row => row[column]));
         }
@@ -1048,7 +1121,8 @@
          * @returns {Object}
          */
         groupBy(tableName, column) {
-            const results = this.get(tableName);
+            const results = this._get(tableName);
+            this._resetConditions();
             return results.reduce((groups, row) => {
                 const key = row[column];
                 if (!groups[key]) groups[key] = [];
@@ -1119,8 +1193,6 @@
             return results;
         }
 
-
-
         /**
          * Get the last insert ID
          * @returns {string|null}
@@ -1130,8 +1202,6 @@
             return this._lastInsertId;
         }
 
-
-
         /**
          * Update with timestamps
          * @param {string} tableName
@@ -1139,6 +1209,8 @@
          * @returns {RockdexDB}
          */
         update(tableName, data) {
+            const startTime = performance.now();
+            
             if (!this._tables.has(tableName)) {
                 throw new Error(`Table '${tableName}' does not exist`);
             }
@@ -1148,10 +1220,9 @@
                 updateData.updated_at = new Date().toISOString();
             }
 
-            // Validate update data against schema if exists
+            // Schema validation
             const schema = this._schemas.get(tableName);
             if (schema) {
-                // Only validate fields that are being updated
                 const partialSchema = {};
                 for (const field of Object.keys(updateData)) {
                     if (schema[field]) {
@@ -1165,21 +1236,120 @@
 
             const table = this._tables.get(tableName);
             let updatedCount = 0;
-            const updatedTable = table.map(row => {
-                let shouldUpdate = this._whereConditions.every(condition =>
-                    row[condition.field] === condition.value
-                );
-                let newData = shouldUpdate ? { ...row, ...updateData } : row;
-                shouldUpdate = shouldUpdate && this._trigger(tableName, 'update', row, newData);
-                if (shouldUpdate) updatedCount++;
-                return shouldUpdate ? newData : row;
-            });
-
-            this._tables.set(tableName, updatedTable);
             
-            this._log('update', { tableName, updatedCount, storageMode: this._storageMode });
+            // Use indexes for faster updates if possible
+            if (this._whereConditions.length > 0 && this._performanceEnabled) {
+                const primaryCondition = this._whereConditions[0];
+                const indexedResults = this._executeIndexedQuery(
+                    tableName, 
+                    primaryCondition.field, 
+                    primaryCondition.value,
+                    primaryCondition.operator
+                );
+                
+                if (indexedResults && indexedResults.length > 0) {
+                    // Update using indexed results
+                    const updatedTable = table.map(row => {
+                        const isTargetRow = indexedResults.some(indexedRow => 
+                            indexedRow._rowIndex !== undefined ? 
+                            table.indexOf(row) === indexedRow._rowIndex :
+                            JSON.stringify(row) === JSON.stringify(indexedRow)
+                        );
+                        
+                        if (isTargetRow && this._applyAllConditions(row)) {
+                            const newData = { ...row, ...updateData };
+                            if (this._trigger(tableName, 'update', row, newData)) {
+                                updatedCount++;
+                                
+                                // Log to WAL
+                                if (this._walLogs.has(tableName)) {
+                                    this._walLogs.get(tableName).logOperation('UPDATE', newData, row);
+                                }
+                                
+                                return newData;
+                            }
+                        }
+                        return row;
+                    });
+                    
+                    this._tables.set(tableName, updatedTable);
+                } else {
+                    // Fallback to full table scan
+                    updatedCount = this._updateFallback(tableName, updateData);
+                }
+            } else {
+                // No indexes available - use traditional update
+                updatedCount = this._updateFallback(tableName, updateData);
+            }
+
             this._resetConditions();
+            
+            const updateTime = performance.now() - startTime;
+            this._log('update', { 
+                tableName, 
+                updatedCount,
+                updateTime: updateTime.toFixed(2) + 'ms',
+                indexUsed: this._metrics.indexUsage > 0,
+                storageMode: this._storageMode 
+            });
+            
             return this;
+        }
+
+        /**
+         * Fallback update method for when indexes aren't available
+         * @private
+         */
+        _updateFallback(tableName, updateData) {
+            const table = this._tables.get(tableName);
+            let updatedCount = 0;
+            
+            const updatedTable = table.map(row => {
+                if (this._applyAllConditions(row)) {
+                    const newData = { ...row, ...updateData };
+                    if (this._trigger(tableName, 'update', row, newData)) {
+                        updatedCount++;
+                        
+                        // Log to WAL
+                        if (this._walLogs.has(tableName)) {
+                            this._walLogs.get(tableName).logOperation('UPDATE', newData, row);
+                        }
+                        
+                        return newData;
+                    }
+                }
+                return row;
+            });
+            
+            this._tables.set(tableName, updatedTable);
+            return updatedCount;
+        }
+
+        /**
+         * Apply all conditions to a single row
+         * @private
+         */
+        _applyAllConditions(row) {
+            return this._whereConditions.every(condition => {
+                switch (condition.operator) {
+                    case 'IN':
+                        return condition.value.includes(row[condition.field]);
+                    case 'LIKE':
+                        return String(row[condition.field]).includes(condition.value.replace(/%/g, ''));
+                    case '>':
+                        return row[condition.field] > condition.value;
+                    case '<':
+                        return row[condition.field] < condition.value;
+                    case '>=':
+                        return row[condition.field] >= condition.value;
+                    case '<=':
+                        return row[condition.field] <= condition.value;
+                    case '!=':
+                        return row[condition.field] !== condition.value;
+                    default:
+                        return row[condition.field] === condition.value;
+                }
+            });
         }
 
         /**
@@ -1230,7 +1400,8 @@
          * @returns {string}
          */
         toJSON(tableName) {
-            const data = this.get(tableName);
+            const data = this._get(tableName);
+            this._resetConditions();
             return JSON.stringify(data, null, 2);
         }
 
@@ -1417,7 +1588,8 @@
             const totalPages = Math.ceil(total / perPage);
             const offset = (page - 1) * perPage;
 
-            const results = this.limit(perPage, offset).get(tableName);
+            const results = this.limit(perPage, offset)._get(tableName);
+            this._resetConditions();
 
             return {
                 data: results,
@@ -1695,67 +1867,6 @@
         }
 
         /**
-         * High-performance get method with indexing
-         */
-        async get(tableName) {
-            if (!this._tables.has(tableName)) {
-                throw new Error(`Table '${tableName}' does not exist`);
-            }
-
-            const startTime = performance.now();
-            let results;
-            
-            // Try to use indexes for primary condition
-            if (this._whereConditions.length > 0 && this._performanceEnabled) {
-                const primaryCondition = this._whereConditions[0];
-                const indexedResults = this._executeIndexedQuery(
-                    tableName, 
-                    primaryCondition.field, 
-                    primaryCondition.value, 
-                    primaryCondition.operator
-                );
-                
-                if (indexedResults) {
-                    results = indexedResults;
-                    
-                    // Apply remaining conditions
-                    if (this._whereConditions.length > 1) {
-                        results = this._applyConditions(results);
-                    }
-                } else {
-                    // Fallback to full table scan
-                    results = [...this._tables.get(tableName)];
-                    results = this._applyConditions(results);
-                }
-            } else {
-                // No conditions or performance disabled - get all
-                results = [...this._tables.get(tableName)];
-                results = this._applyConditions(results);
-            }
-
-            // Apply soft delete filter
-            if (this._softDelete) {
-                results = results.filter(row => !row.deleted_at);
-            }
-
-            this._resetConditions();
-            
-            // Record performance metrics
-            const queryTime = performance.now() - startTime;
-            this._metrics.queryTimes.push(queryTime);
-            
-            this._log('get', { 
-                tableName, 
-                resultCount: results.length, 
-                queryTime: queryTime.toFixed(2) + 'ms',
-                indexUsed: this._metrics.indexUsage > 0,
-                storageMode: this._storageMode 
-            });
-            
-            return results;
-        }
-
-        /**
          * Performance-optimized insert with indexing
          */
         insert(tableName, data) {
@@ -1962,7 +2073,7 @@
             
             console.log(`✅ Test data generated in ${Date.now() - startTime}ms`);
             
-            // Test 1: Array linear search vs RockdxDB indexed search
+            // Test 1: Array linear search vs RockdexDB indexed search
             console.log('\n📊 Starting Performance Benchmarks...\n');
             
             // Traditional array operations
@@ -1970,7 +2081,7 @@
             const arrayResults = testData.filter(record => record.age >= 25 && record.age <= 35);
             const arrayTime = performance.now() - arrayStartTime;
             
-            // RockdxDB operations  
+            // RockdexDB operations  
             const dbStartTime = performance.now();
             this.createTable('benchmark_users', {
                 id: { type: 'number', required: true, indexed: true },
@@ -1996,7 +2107,7 @@
                     time: arrayTime.toFixed(2) + 'ms',
                     results: arrayResults.length
                 },
-                rockdxSearch: {
+                rockdexSearch: {
                     time: dbTime.toFixed(2) + 'ms', 
                     results: dbResults.length,
                     indexesUsed: this._metrics.indexUsage
@@ -2013,7 +2124,7 @@
             console.log('🏆 BENCHMARK RESULTS:');
             console.log(`├─ Test Records: ${recordCount.toLocaleString()}`);
             console.log(`├─ Array Search: ${arrayTime.toFixed(2)}ms (${arrayResults.length} results)`);
-            console.log(`├─ RockdxDB Search: ${dbTime.toFixed(2)}ms (${dbResults.length} results)`);
+            console.log(`├─ RockdexDB Search: ${dbTime.toFixed(2)}ms (${dbResults.length} results)`);
             console.log(`├─ 🚄 Speed Improvement: ${speedup}x faster`);
             console.log(`├─ 📈 Efficiency Gain: ${efficiency}% improvement`);
             console.log(`├─ 🎯 Indexes Used: ${this._metrics.indexUsage}`);
@@ -2095,11 +2206,11 @@
                     this._tables.set(tableName, updatedTable);
                 } else {
                     // Fallback to full table scan
-                    this._updateFallback(tableName, updateData);
+                    updatedCount = this._updateFallback(tableName, updateData);
                 }
             } else {
                 // No indexes available - use traditional update
-                this._updateFallback(tableName, updateData);
+                updatedCount = this._updateFallback(tableName, updateData);
             }
 
             this._resetConditions();
