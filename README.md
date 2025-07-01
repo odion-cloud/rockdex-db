@@ -29,7 +29,7 @@ Rockdex DB is a lightweight, feature-rich JavaScript database that works seamles
 
 ## 🚄 Performance Optimizations
 
-**Rockdx DB is optimized to beat IndexedDB performance by 50-200x!** Here's how:
+**Rockdex DB is optimized to beat IndexedDB performance by 50-200x!** Here's how:
 
 ### ⚡ High-Performance Features
 
@@ -43,7 +43,7 @@ Rockdex DB is a lightweight, feature-rich JavaScript database that works seamles
 ### 🎯 Performance Configuration
 
 ```javascript
-const db = new RockdxDB({
+const db = new RockdexDB({
     storageMode: 'memory',        // Works with both 'memory' and 'file'
     performance: true,            // Enable performance optimizations
     autoIndex: true,              // Auto-create indexes for common patterns
@@ -95,7 +95,7 @@ console.log(metrics);
 await db.benchmark(100000);  // Test with 100K records
 // 🏆 BENCHMARK RESULTS:
 // ├─ Array Search: 45.67ms (2,456 results)
-// ├─ RockdxDB Search: 1.23ms (2,456 results)  
+// ├─ RockdexDB Search: 1.23ms (2,456 results)  
 // ├─ 🚄 Speed Improvement: 37.1x faster
 // └─ 📈 Efficiency Gain: 97.3% improvement
 ```
@@ -123,11 +123,11 @@ const results = await db.whereOperator('score', '>', 800)
 
 ### 🧠 Memory Management for Large Datasets
 
-Rockdx DB intelligently manages memory to prevent browser crashes:
+Rockdex DB intelligently manages memory to prevent browser crashes:
 
 ```javascript
 // Automatic chunking and streaming for large datasets
-const db = new RockdxDB({
+const db = new RockdexDB({
     chunkSize: 10000,      // 10K records per chunk
     maxMemoryChunks: 5     // Keep max 5 chunks in RAM
 });
@@ -141,9 +141,9 @@ db.setTable('bigdata', millionRecords);
 
 ### 📈 Performance Comparison
 
-**Traditional Array Operations vs RockdxDB Optimized:**
+**Traditional Array Operations vs RockdexDB Optimized:**
 
-| Operation | Array Time | RockdxDB Time | Speedup |
+| Operation | Array Time | RockdexDB Time | Speedup |
 |-----------|------------|---------------|---------|
 | 50K Record Query | 1,194ms | 5-10ms | **100-200x faster** |
 | 1M Record Load | 500ms | 200-500ms | **10-25x faster** |
@@ -369,7 +369,7 @@ const decryptedData = decrypt(record.data, 'my-key');
 ## 🛠️ Configuration Options
 
 ```javascript
-const db = new RockdxDB({
+const db = new RockdexDB({
     // Storage Configuration
     storageMode: 'file',           // 'memory' or 'file'
     storagePath: './data',         // Database folder path
