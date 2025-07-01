@@ -1,16 +1,16 @@
-# RockdexDB - Lightweight Cross-Platform Database
+# Rockdex DB - Lightweight Cross-Platform Database
 
 [![npm version](https://badge.fury.io/js/@odion-cloud%2Frockdex-db.svg)](https://badge.fury.io/js/@odion-cloud%2Frockdex-db)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/odion-cloud/rockdexdb.svg?style=social&label=Star)](https://github.com/odion-cloud/rockdexdb)
+[![GitHub stars](https://img.shields.io/github/stars/odion-cloud/rockdex-db.svg?style=social&label=Star)](https://github.com/odion-cloud/rockdex-db)
 
-RockdexDB is a lightweight, feature-rich JavaScript database that works seamlessly in both **Node.js** and **Browser** environments. It supports in-memory operations and manual file management with a simple export/import system.
+Rockdex DB is a lightweight, feature-rich JavaScript database that works seamlessly in both **Node.js** and **Browser** environments. It supports in-memory operations and manual file management with a simple export/import system.
 
 ## 🔗 Quick Links
 
-- 📖 **[Full Documentation](https://odion-cloud.github.io/rockdexdb/)** - Complete guides and examples
+- 📖 **[Full Documentation](https://odion-cloud.github.io/rockdex-db/)** - Complete guides and examples
 - 📦 **[npm Package](https://www.npmjs.com/package/@odion-cloud/rockdex-db)** - Install with `npm install @odion-cloud/rockdex-db`
-- ⭐ **[GitHub Repository](https://github.com/odion-cloud/rockdexdb)** - Source code and issues
+- ⭐ **[GitHub Repository](https://github.com/odion-cloud/rockdex-db)** - Source code and issues
 - 💬 **[Support & Discussion](https://github.com/sponsors/odion-cloud)** - Get help and support development
 
 ## ✨ Key Features
@@ -93,7 +93,7 @@ touch ./database/users.rdb
 touch ./database/posts.rdb  
 touch ./database/orders.rdb
 
-// 2. Configure RockdexDB
+// 2. Configure Rockdex DB
 const db = new RockdexDB({
     storageMode: 'file',
     storagePath: './database',
@@ -386,7 +386,7 @@ The clean, manual approach offers several advantages:
 
 ## 🏗️ Production Ready
 
-RockdexDB is designed for production use with:
+Rockdex DB is designed for production use with:
 
 - ✅ Clean, consistent API
 - ✅ Comprehensive error handling  
@@ -415,7 +415,7 @@ your-project/
 
 ### 💝 Support This Project
 
-Help improve RockdexDB and build better tools for the community!
+Help improve Rockdex DB and build better tools for the community!
 
 - 🌟 **GitHub Sponsors**: [github.com/sponsors/odion-cloud](https://github.com/sponsors/odion-cloud)
 - 🪙 **Cryptocurrency**: Multiple networks supported (BTC, USDT on Ethereum, BNB Chain, TRON, Solana, TON)
@@ -428,7 +428,7 @@ Your support helps me:
 
 ### 🤝 Other Ways to Help
 
-- ⭐ **Star the project** on [GitHub](https://github.com/odion-cloud/rockdexdb)
+- ⭐ **Star the project** on [GitHub](https://github.com/odion-cloud/rockdex-db)
 - 🐛 **Report issues** and suggest features
 - 📖 **Improve documentation** and examples
 - 💬 **Spread the word** to other developers
@@ -445,10 +445,10 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## 📄 License
 
-MIT License - feel free to use RockdexDB in your projects!
+MIT License - feel free to use Rockdex DB in your projects!
 
 ---
 
-**RockdexDB**: Clean, powerful, production-ready database for modern JavaScript applications.
+**Rockdex DB**: Clean, powerful, production-ready database for modern JavaScript applications.
 
 Built with ❤️ by [Odion Cloud](https://github.com/odion-cloud)
